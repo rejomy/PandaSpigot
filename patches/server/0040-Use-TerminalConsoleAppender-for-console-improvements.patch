@@ -22,7 +22,7 @@ This patch contains heavy inspiration from:
 https://github.com/PaperMC/Paper/blob/master/patches/server/0137-Use-TerminalConsoleAppender-for-console-improvements.patch
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 7c0bac5144853c7258bb65ddf6a0654ca5697269..22b69df26679d07893224314d16483aa83b42004 100644
+index d130985a63c1074de418ce40a7035811a19e3115..f66de2ff7d7d73a69d9d780a9fddfd9d300b79c2 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -21,8 +21,10 @@ dependencies {
@@ -55,7 +55,7 @@ index 7c0bac5144853c7258bb65ddf6a0654ca5697269..22b69df26679d07893224314d16483aa
      testImplementation("junit:junit:4.11")
      testImplementation("org.hamcrest:hamcrest-library:1.3")
  }
-@@ -62,6 +68,7 @@ tasks {
+@@ -59,6 +65,7 @@ tasks {
          mergeServiceFiles()
          archiveClassifier.set("unmapped")
          append("META-INF/io.netty.versions.properties")
@@ -63,6 +63,14 @@ index 7c0bac5144853c7258bb65ddf6a0654ca5697269..22b69df26679d07893224314d16483aa
          // PandaSpigot start - Configuration
          arrayOf(
              "com.amihaiemil.eoyaml",
+@@ -70,7 +77,6 @@ tasks {
+         val cbLibsPkg = "org.bukkit.craftbukkit.libs"
+ 
+         relocate("joptsimple", "$cbLibsPkg.joptsimple")
+-        relocate("jline", "$cbLibsPkg.jline")
+         relocate("org.ibex", "$cbLibsPkg.org.ibex")
+         relocate("org.gjt", "$cbLibsPkg.org.gjt")
+ 
 diff --git a/src/main/java/com/hpfxd/pandaspigot/console/PandaConsole.java b/src/main/java/com/hpfxd/pandaspigot/console/PandaConsole.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..25a515b681bbbb70946f2ec73647a6f184f81b3c
@@ -234,7 +242,7 @@ index 09085582a95fc4c61034db70dd543c5e7da8ede7..cd22366c7b066494192e0602da174701
          System.setOut(new PrintStream(new LoggerOutputStream(logger, Level.INFO), true));
          System.setErr(new PrintStream(new LoggerOutputStream(logger, Level.WARN), true));
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 75716099df3c3afc9e5857258ed6d1b271c4b957..7cdc9d1451a4f85b99095db7e7e4ddb187ae12dc 100644
+index 76cd10c8b8ffd7a7db8c9e95fcf59033c8d6d88e..c5ef30ac9aeb1c10ec9c01fca854f38bea1fc895 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -41,7 +41,7 @@ import org.apache.logging.log4j.Logger;
@@ -255,7 +263,7 @@ index 75716099df3c3afc9e5857258ed6d1b271c4b957..7cdc9d1451a4f85b99095db7e7e4ddb1
      public static int currentTick = 0; // PaperSpigot - Further improve tick loop
      public final Thread primaryThread;
      public java.util.Queue<Runnable> processQueue = new java.util.concurrent.ConcurrentLinkedQueue<Runnable>();
-@@ -160,6 +160,7 @@ public abstract class MinecraftServer extends com.hpfxd.pandaspigot.tickloop.Ree
+@@ -156,6 +156,7 @@ public abstract class MinecraftServer extends com.hpfxd.pandaspigot.tickloop.Ree
          this.Y = this.V.createProfileRepository();
          // CraftBukkit start
          this.options = options;
@@ -263,7 +271,7 @@ index 75716099df3c3afc9e5857258ed6d1b271c4b957..7cdc9d1451a4f85b99095db7e7e4ddb1
          // Try to see if we're actually running in a terminal, disable jline if not
          if (System.console() == null && System.getProperty("jline.terminal") == null) {
              System.setProperty("jline.terminal", "jline.UnsupportedTerminal");
-@@ -181,6 +182,7 @@ public abstract class MinecraftServer extends com.hpfxd.pandaspigot.tickloop.Ree
+@@ -177,6 +178,7 @@ public abstract class MinecraftServer extends com.hpfxd.pandaspigot.tickloop.Ree
                  LOGGER.warn((String) null, ex);
              }
          }
@@ -271,7 +279,7 @@ index 75716099df3c3afc9e5857258ed6d1b271c4b957..7cdc9d1451a4f85b99095db7e7e4ddb1
          Runtime.getRuntime().addShutdownHook(new org.bukkit.craftbukkit.util.ServerShutdownThread(this));
  
          //this.serverThread = primaryThread = new Thread(this, "Server thread"); // Moved from main // PandaSpigot - comment out; we assign above
-@@ -691,7 +693,7 @@ public abstract class MinecraftServer extends com.hpfxd.pandaspigot.tickloop.Ree
+@@ -677,7 +679,7 @@ public abstract class MinecraftServer extends com.hpfxd.pandaspigot.tickloop.Ree
              } finally {
                  // CraftBukkit start - Restore terminal to original settings
                  try {
@@ -280,12 +288,12 @@ index 75716099df3c3afc9e5857258ed6d1b271c4b957..7cdc9d1451a4f85b99095db7e7e4ddb1
                  } catch (Exception ignored) {
                  }
                  // CraftBukkit end
-@@ -1309,7 +1311,7 @@ public abstract class MinecraftServer extends com.hpfxd.pandaspigot.tickloop.Ree
+@@ -1290,7 +1292,7 @@ public abstract class MinecraftServer extends com.hpfxd.pandaspigot.tickloop.Ree
      }
  
      public void sendMessage(IChatBaseComponent ichatbasecomponent) {
 -        MinecraftServer.LOGGER.info(ichatbasecomponent.c());
-+        MinecraftServer.LOGGER.info(org.bukkit.craftbukkit.util.CraftChatMessage.fromComponent(ichatbasecomponent)); // PandaSpigot - Log messages with color
++        MinecraftServer.LOGGER.info(org.bukkit.craftbukkit.util.CraftChatMessage.fromComponent(ichatbasecomponent, net.minecraft.server.EnumChatFormat.RESET)); // PandaSpigot - Log messages with color
      }
  
      public boolean a(int i, String s) {
@@ -329,7 +337,7 @@ index e218b127c6dcdce2c4f8154684f58d4295c6c247..e355f31d852fa15ff2c6bba55931f38b
      @Override
      public PluginCommand getPluginCommand(String name) {
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 715fb447a1428953d7e1425cb12a5e8dcff574e8..697f5a9f0a398d561d771bca7fe2b637a7725b56 100644
+index abf3a9f32e55a893b6f451c1e89de38c17ca90b3..39296a28458bb52b317187b96eec6a2b98230d97 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
 @@ -10,7 +10,7 @@ import java.util.logging.Logger;
@@ -341,7 +349,7 @@ index 715fb447a1428953d7e1425cb12a5e8dcff574e8..697f5a9f0a398d561d771bca7fe2b637
  
  public class Main {
      public static boolean useJline = true;
-@@ -167,6 +167,7 @@ public class Main {
+@@ -168,6 +168,7 @@ public class Main {
              }
  
              try {
@@ -349,7 +357,7 @@ index 715fb447a1428953d7e1425cb12a5e8dcff574e8..697f5a9f0a398d561d771bca7fe2b637
                  // This trick bypasses Maven Shade's clever rewriting of our getProperty call when using String literals
                  String jline_UnsupportedTerminal = new String(new char[] {'j','l','i','n','e','.','U','n','s','u','p','p','o','r','t','e','d','T','e','r','m','i','n','a','l'});
                  String jline_terminal = new String(new char[] {'j','l','i','n','e','.','t','e','r','m','i','n','a','l'});
-@@ -184,10 +185,21 @@ public class Main {
+@@ -185,10 +186,21 @@ public class Main {
                      // This ensures the terminal literal will always match the jline implementation
                      System.setProperty(jline.TerminalFactory.JLINE_TERMINAL, jline.UnsupportedTerminal.class.getName());
                  }
@@ -371,7 +379,7 @@ index 715fb447a1428953d7e1425cb12a5e8dcff574e8..697f5a9f0a398d561d771bca7fe2b637
                  }
  
                  // Spigot Start
-@@ -206,6 +218,7 @@ public class Main {
+@@ -207,6 +219,7 @@ public class Main {
                      System.out.println( "Please see http://www.spigotmc.org/wiki/changing-permgen-size/ for more details and more in-depth instructions." );
                  }
                  // Spigot End
