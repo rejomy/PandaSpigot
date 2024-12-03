@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Fri, 5 Jul 2024 13:11:38 +0500
+Subject: [PATCH] Remove max attribute from spigot config.
+
+
+diff --git a/src/main/java/org/spigotmc/SpigotConfig.java b/src/main/java/org/spigotmc/SpigotConfig.java
+index 0b2c26f10ecaae52e2c205ceb57549e1fb596b42..32384024402450e5ec919bc98bdeb491b7e1f067 100644
+--- a/src/main/java/org/spigotmc/SpigotConfig.java
++++ b/src/main/java/org/spigotmc/SpigotConfig.java
+@@ -392,15 +392,6 @@ public class SpigotConfig
+     public static double maxHealth = 2048;
+     public static double movementSpeed = 2048;
+     public static double attackDamage = 2048;
+-    private static void attributeMaxes()
+-    {
+-        maxHealth = getDouble( "settings.attribute.maxHealth.max", maxHealth );
+-        ( (AttributeRanged) GenericAttributes.maxHealth ).b = maxHealth;
+-        movementSpeed = getDouble( "settings.attribute.movementSpeed.max", movementSpeed );
+-        ( (AttributeRanged) GenericAttributes.MOVEMENT_SPEED ).b = movementSpeed;
+-        attackDamage = getDouble( "settings.attribute.attackDamage.max", attackDamage );
+-        ( (AttributeRanged) GenericAttributes.ATTACK_DAMAGE ).b = attackDamage;
+-    }
+ 
+     public static boolean debug;
+     private static void debug()

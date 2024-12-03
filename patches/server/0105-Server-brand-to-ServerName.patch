@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Fri, 5 Jul 2024 14:01:35 +0500
+Subject: [PATCH] Server brand to "ServerName"
+
+
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index fb5e2990bb198ba48488757ba011e84a89c75877..6e308dda2069bd5ef3cd9d29b8c6f75f4c2a65be 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -44,6 +44,7 @@ import java.io.IOException;
+ //import jline.console.ConsoleReader; // PandaSpigot - comment out
+ import joptsimple.OptionSet;
+ 
++import org.bukkit.Bukkit;
+ import org.bukkit.craftbukkit.Main;
+ import co.aikar.timings.SpigotTimings; // Spigot
+ // CraftBukkit end
+@@ -1228,7 +1229,7 @@ public abstract class MinecraftServer extends com.hpfxd.pandaspigot.tickloop.Ree
+     }
+ 
+     public String getServerModName() {
+-        return "PandaSpigot"; // PandaSpigot - PandaSpigot > // PaperSpigot - PaperSpigot > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
++        return Bukkit.getServerName(); // PandaSpigot - PandaSpigot > // PaperSpigot - PaperSpigot > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
+     }
+ 
+     public CrashReport b(CrashReport crashreport) {

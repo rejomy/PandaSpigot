@@ -1,0 +1,774 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Sat, 6 Jul 2024 09:54:53 +0500
+Subject: [PATCH] Remove help.yml and help command
+
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index 5233ad1c5012ee1df5705627dced1de597f96424..c222016d0e4f9bcc5d11f9b6bdd2df9ab306507e 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -49,7 +49,6 @@ import org.bukkit.conversations.Conversable;
+ import org.bukkit.craftbukkit.command.VanillaCommandWrapper;
+ import org.bukkit.craftbukkit.entity.CraftPlayer;
+ import org.bukkit.craftbukkit.generator.CraftChunkData;
+-import org.bukkit.craftbukkit.help.SimpleHelpMap;
+ import org.bukkit.craftbukkit.inventory.CraftFurnaceRecipe;
+ import org.bukkit.craftbukkit.inventory.CraftInventoryCustom;
+ import org.bukkit.craftbukkit.inventory.CraftItemFactory;
+@@ -74,10 +73,8 @@ import org.bukkit.event.inventory.InventoryType;
+ import org.bukkit.event.player.PlayerChatTabCompleteEvent;
+ import org.bukkit.event.world.WorldInitEvent;
+ import org.bukkit.event.world.WorldLoadEvent;
+-import org.bukkit.event.world.WorldSaveEvent;
+ import org.bukkit.event.world.WorldUnloadEvent;
+ import org.bukkit.generator.ChunkGenerator;
+-import org.bukkit.help.HelpMap;
+ import org.bukkit.inventory.FurnaceRecipe;
+ import org.bukkit.inventory.ItemStack;
+ import org.bukkit.inventory.Inventory;
+@@ -103,7 +100,6 @@ import org.bukkit.util.StringUtil;
+ import org.bukkit.util.permissions.DefaultPermissions;
+ import org.yaml.snakeyaml.Yaml;
+ import org.yaml.snakeyaml.constructor.SafeConstructor;
+-import org.yaml.snakeyaml.error.MarkedYAMLException;
+ import org.apache.commons.lang.Validate;
+ 
+ import com.avaje.ebean.config.DataSourceConfig;
+@@ -133,7 +129,6 @@ public final class CraftServer implements Server {
+     private final ServicesManager servicesManager = new SimpleServicesManager();
+     private final CraftScheduler scheduler = new CraftScheduler();
+     private final SimpleCommandMap commandMap = new SimpleCommandMap(this);
+-    private final SimpleHelpMap helpMap = new SimpleHelpMap(this);
+     private final StandardMessenger messenger = new StandardMessenger();
+     private final SimplePluginManager pluginManager = new SimplePluginManager(this, commandMap); // PandaSpigot
+     protected final MinecraftServer console;
+@@ -141,7 +136,6 @@ public final class CraftServer implements Server {
+     private final Map<String, World> worlds = new LinkedHashMap<String, World>();
+     private YamlConfiguration configuration;
+     private YamlConfiguration commandsConfiguration;
+-    private final Yaml yaml = new Yaml(new SafeConstructor());
+     private final Map<UUID, OfflinePlayer> offlinePlayers = new MapMaker().softValues().makeMap();
+     private final EntityMetadataStore entityMetadata = new EntityMetadataStore();
+     private final PlayerMetadataStore playerMetadata = new PlayerMetadataStore();
+@@ -339,11 +333,6 @@ public final class CraftServer implements Server {
+     // PandaSpigot end
+ 
+     public void enablePlugins(PluginLoadOrder type) {
+-        if (type == PluginLoadOrder.STARTUP) {
+-            helpMap.clear();
+-            helpMap.initializeGeneralTopics();
+-        }
+-
+         Plugin[] plugins = pluginManager.getPlugins();
+ 
+         for (Plugin plugin : plugins) {
+@@ -355,13 +344,11 @@ public final class CraftServer implements Server {
+         if (type == PluginLoadOrder.POSTWORLD) {
+             // Spigot start - Allow vanilla commands to be forced to be the main command
+             setVanillaCommands(true);
+-            commandMap.setFallbackCommands();
+             setVanillaCommands(false);
+             // Spigot end
+             commandMap.registerServerAliases();
+             DefaultPermissions.registerCorePermissions();
+             CraftDefaultPermissions.registerCorePermissions();
+-            helpMap.initializeCommands();
+             co.aikar.timings.Timings.reset(); // Spigot
+         }
+     }
+@@ -1531,11 +1518,6 @@ public final class CraftServer implements Server {
+         return new CraftInventoryCustom(owner, size, title);
+     }
+ 
+-    @Override
+-    public HelpMap getHelpMap() {
+-        return helpMap;
+-    }
+-
+     @Override // Paper - add override
+     public SimpleCommandMap getCommandMap() {
+         return commandMap;
+diff --git a/src/main/java/org/bukkit/craftbukkit/help/CommandAliasHelpTopic.java b/src/main/java/org/bukkit/craftbukkit/help/CommandAliasHelpTopic.java
+deleted file mode 100644
+index 9f2238c9a73b4a63c6ae4a8b72be925e84110269..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/craftbukkit/help/CommandAliasHelpTopic.java
++++ /dev/null
+@@ -1,46 +0,0 @@
+-package org.bukkit.craftbukkit.help;
+-
+-import org.apache.commons.lang.Validate;
+-import org.bukkit.ChatColor;
+-import org.bukkit.command.CommandSender;
+-import org.bukkit.help.HelpMap;
+-import org.bukkit.help.HelpTopic;
+-
+-public class CommandAliasHelpTopic extends HelpTopic {
+-
+-    private final String aliasFor;
+-    private final HelpMap helpMap;
+-
+-    public CommandAliasHelpTopic(String alias, String aliasFor, HelpMap helpMap) {
+-        this.aliasFor = aliasFor.startsWith("/") ? aliasFor : "/" + aliasFor;
+-        this.helpMap = helpMap;
+-        this.name = alias.startsWith("/") ? alias : "/" + alias;
+-        Validate.isTrue(!this.name.equals(this.aliasFor), "Command " + this.name + " cannot be alias for itself");
+-        this.shortText = ChatColor.YELLOW + "Alias for " + ChatColor.WHITE + this.aliasFor;
+-    }
+-
+-    @Override
+-    public String getFullText(CommandSender forWho) {
+-        StringBuilder sb = new StringBuilder(shortText);
+-        HelpTopic aliasForTopic = helpMap.getHelpTopic(aliasFor);
+-        if (aliasForTopic != null) {
+-            sb.append("\n");
+-            sb.append(aliasForTopic.getFullText(forWho));
+-        }
+-        return sb.toString();
+-    }
+-
+-    @Override
+-    public boolean canSee(CommandSender commandSender) {
+-        if (amendedPermission == null) {
+-            HelpTopic aliasForTopic = helpMap.getHelpTopic(aliasFor);
+-            if (aliasForTopic != null) {
+-                return aliasForTopic.canSee(commandSender);
+-            } else {
+-                return false;
+-            }
+-        } else {
+-            return commandSender.hasPermission(amendedPermission);
+-        }
+-    }
+-}
+diff --git a/src/main/java/org/bukkit/craftbukkit/help/CustomHelpTopic.java b/src/main/java/org/bukkit/craftbukkit/help/CustomHelpTopic.java
+deleted file mode 100644
+index 6dee2296f7670587415aff4c0f1f67e3c8ea3d33..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/craftbukkit/help/CustomHelpTopic.java
++++ /dev/null
+@@ -1,31 +0,0 @@
+-package org.bukkit.craftbukkit.help;
+-
+-import org.bukkit.command.CommandSender;
+-import org.bukkit.command.ConsoleCommandSender;
+-import org.bukkit.help.HelpTopic;
+-
+-/**
+- * This is a help topic implementation for general topics registered in the help.yml file.
+- */
+-public class CustomHelpTopic extends HelpTopic {
+-    private final String permissionNode;
+-
+-    public CustomHelpTopic(String name, String shortText, String fullText, String permissionNode) {
+-        this.permissionNode = permissionNode;
+-        this.name = name;
+-        this.shortText = shortText;
+-        this.fullText = shortText + "\n" + fullText;
+-    }
+-
+-    public boolean canSee(CommandSender sender) {
+-        if (sender instanceof ConsoleCommandSender) {
+-            return true;
+-        }
+-
+-        if (!permissionNode.equals("")) {
+-            return sender.hasPermission(permissionNode);
+-        } else {
+-            return true;
+-        }
+-    }
+-}
+diff --git a/src/main/java/org/bukkit/craftbukkit/help/CustomIndexHelpTopic.java b/src/main/java/org/bukkit/craftbukkit/help/CustomIndexHelpTopic.java
+deleted file mode 100644
+index 2089a5f524220178ca231dd569ab0a963552d5be..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/craftbukkit/help/CustomIndexHelpTopic.java
++++ /dev/null
+@@ -1,40 +0,0 @@
+-package org.bukkit.craftbukkit.help;
+-
+-import org.bukkit.command.CommandSender;
+-import org.bukkit.help.HelpMap;
+-import org.bukkit.help.HelpTopic;
+-import org.bukkit.help.IndexHelpTopic;
+-
+-import java.util.HashSet;
+-import java.util.LinkedList;
+-import java.util.List;
+-
+-/**
+- */
+-public class CustomIndexHelpTopic extends IndexHelpTopic {
+-    private List<String> futureTopics;
+-    private final HelpMap helpMap;
+-
+-    public CustomIndexHelpTopic(HelpMap helpMap, String name, String shortText, String permission, List<String> futureTopics, String preamble) {
+-        super(name, shortText, permission, new HashSet<HelpTopic>(), preamble);
+-        this.helpMap = helpMap;
+-        this.futureTopics = futureTopics;
+-    }
+-
+-    @Override
+-    public String getFullText(CommandSender sender) {
+-        if (futureTopics != null) {
+-            List<HelpTopic> topics = new LinkedList<HelpTopic>();
+-            for (String futureTopic : futureTopics) {
+-                HelpTopic topic = helpMap.getHelpTopic(futureTopic);
+-                if (topic != null) {
+-                    topics.add(topic);
+-                }
+-            }
+-            setTopicsCollection(topics);
+-            futureTopics = null;
+-        }
+-
+-        return super.getFullText(sender);
+-    }
+-}
+diff --git a/src/main/java/org/bukkit/craftbukkit/help/HelpTopicAmendment.java b/src/main/java/org/bukkit/craftbukkit/help/HelpTopicAmendment.java
+deleted file mode 100644
+index 4f0e00ec7eb1ef1d7333484013d4f9793fd445d6..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/craftbukkit/help/HelpTopicAmendment.java
++++ /dev/null
+@@ -1,50 +0,0 @@
+-package org.bukkit.craftbukkit.help;
+-
+-/**
+- * A HelpTopicAmendment represents the contents of a topic amendment from the help.yml
+- */
+-public class HelpTopicAmendment {
+-    private final String topicName;
+-    private final String shortText;
+-    private final String fullText;
+-    private final String permission;
+-
+-    public HelpTopicAmendment(String topicName, String shortText, String fullText, String permission) {
+-        this.fullText = fullText;
+-        this.shortText = shortText;
+-        this.topicName = topicName;
+-        this.permission = permission;
+-    }
+-
+-    /**
+-     * Gets the amended full text
+-     * @return the full text
+-     */
+-    public String getFullText() {
+-        return fullText;
+-    }
+-
+-    /**
+-     * Gets the amended short text
+-     * @return the short text
+-     */
+-    public String getShortText() {
+-        return shortText;
+-    }
+-
+-    /**
+-     * Gets the name of the topic being amended
+-     * @return the topic name
+-     */
+-    public String getTopicName() {
+-        return topicName;
+-    }
+-
+-    /**
+-     * Gets the amended permission
+-     * @return the permission
+-     */
+-    public String getPermission() {
+-        return permission;
+-    }
+-}
+diff --git a/src/main/java/org/bukkit/craftbukkit/help/HelpYamlReader.java b/src/main/java/org/bukkit/craftbukkit/help/HelpYamlReader.java
+deleted file mode 100644
+index 60a6221b4f5ff0499ca101dfd4ea762368b31b94..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/craftbukkit/help/HelpYamlReader.java
++++ /dev/null
+@@ -1,119 +0,0 @@
+-package org.bukkit.craftbukkit.help;
+-
+-import org.bukkit.ChatColor;
+-import org.bukkit.Server;
+-import org.bukkit.configuration.ConfigurationSection;
+-import org.bukkit.configuration.file.YamlConfiguration;
+-import org.bukkit.help.HelpTopic;
+-
+-import com.google.common.base.Charsets;
+-
+-import java.io.File;
+-import java.io.IOException;
+-import java.io.InputStreamReader;
+-import java.util.LinkedList;
+-import java.util.List;
+-import java.util.logging.Level;
+-
+-/**
+- * HelpYamlReader is responsible for processing the contents of the help.yml file.
+- */
+-public class HelpYamlReader {
+-
+-    private YamlConfiguration helpYaml;
+-    private final char ALT_COLOR_CODE = '&';
+-    private final Server server;
+-
+-    public HelpYamlReader(Server server) {
+-        this.server = server;
+-
+-        File helpYamlFile = new File("help.yml");
+-        YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("configurations/help.yml"), Charsets.UTF_8));
+-
+-        try {
+-            helpYaml = YamlConfiguration.loadConfiguration(helpYamlFile);
+-            helpYaml.options().copyDefaults(true);
+-            helpYaml.setDefaults(defaultConfig);
+-
+-            try {
+-                if (!helpYamlFile.exists()) {
+-                    helpYaml.save(helpYamlFile);
+-                }
+-            } catch (IOException ex) {
+-                server.getLogger().log(Level.SEVERE, "Could not save " + helpYamlFile, ex);
+-            }
+-        } catch (Exception ex) {
+-            server.getLogger().severe("Failed to load help.yml. Verify the yaml indentation is correct. Reverting to default help.yml.");
+-            helpYaml = defaultConfig;
+-        }
+-    }
+-
+-    /**
+-     * Extracts a list of all general help topics from help.yml
+-     *
+-     * @return A list of general topics.
+-     */
+-    public List<HelpTopic> getGeneralTopics() {
+-        List<HelpTopic> topics = new LinkedList<HelpTopic>();
+-        ConfigurationSection generalTopics = helpYaml.getConfigurationSection("general-topics");
+-        if (generalTopics != null) {
+-            for (String topicName : generalTopics.getKeys(false)) {
+-                ConfigurationSection section = generalTopics.getConfigurationSection(topicName);
+-                String shortText = ChatColor.translateAlternateColorCodes(ALT_COLOR_CODE, section.getString("shortText", ""));
+-                String fullText = ChatColor.translateAlternateColorCodes(ALT_COLOR_CODE, section.getString("fullText", ""));
+-                String permission = section.getString("permission", "");
+-                topics.add(new CustomHelpTopic(topicName, shortText, fullText, permission));
+-            }
+-        }
+-        return topics;
+-    }
+-
+-    /**
+-     * Extracts a list of all index topics from help.yml
+-     *
+-     * @return A list of index topics.
+-     */
+-    public List<HelpTopic> getIndexTopics() {
+-        List<HelpTopic> topics = new LinkedList<HelpTopic>();
+-        ConfigurationSection indexTopics = helpYaml.getConfigurationSection("index-topics");
+-        if (indexTopics != null) {
+-            for (String topicName : indexTopics.getKeys(false)) {
+-                ConfigurationSection section = indexTopics.getConfigurationSection(topicName);
+-                String shortText = ChatColor.translateAlternateColorCodes(ALT_COLOR_CODE, section.getString("shortText", ""));
+-                String preamble = ChatColor.translateAlternateColorCodes(ALT_COLOR_CODE, section.getString("preamble", ""));
+-                String permission = ChatColor.translateAlternateColorCodes(ALT_COLOR_CODE, section.getString("permission", ""));
+-                List<String> commands = section.getStringList("commands");
+-                topics.add(new CustomIndexHelpTopic(server.getHelpMap(), topicName, shortText, permission, commands, preamble));
+-            }
+-        }
+-        return topics;
+-    }
+-
+-    /**
+-     * Extracts a list of topic amendments from help.yml
+-     *
+-     * @return A list of amendments.
+-     */
+-    public List<HelpTopicAmendment> getTopicAmendments() {
+-        List<HelpTopicAmendment> amendments = new LinkedList<HelpTopicAmendment>();
+-        ConfigurationSection commandTopics = helpYaml.getConfigurationSection("amended-topics");
+-        if (commandTopics != null) {
+-            for (String topicName : commandTopics.getKeys(false)) {
+-                ConfigurationSection section = commandTopics.getConfigurationSection(topicName);
+-                String description = ChatColor.translateAlternateColorCodes(ALT_COLOR_CODE, section.getString("shortText", ""));
+-                String usage = ChatColor.translateAlternateColorCodes(ALT_COLOR_CODE, section.getString("fullText", ""));
+-                String permission = section.getString("permission", "");
+-                amendments.add(new HelpTopicAmendment(topicName, description, usage, permission));
+-            }
+-        }
+-        return amendments;
+-    }
+-
+-    public List<String> getIgnoredPlugins() {
+-        return helpYaml.getStringList("ignore-plugins");
+-    }
+-
+-    public boolean commandTopicsInMasterIndex() {
+-        return helpYaml.getBoolean("command-topics-in-master-index", true);
+-    }
+-}
+diff --git a/src/main/java/org/bukkit/craftbukkit/help/MultipleCommandAliasHelpTopic.java b/src/main/java/org/bukkit/craftbukkit/help/MultipleCommandAliasHelpTopic.java
+deleted file mode 100644
+index 6f4b22b99a0339584f21149953a5cb2bf28992f8..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/craftbukkit/help/MultipleCommandAliasHelpTopic.java
++++ /dev/null
+@@ -1,54 +0,0 @@
+-package org.bukkit.craftbukkit.help;
+-
+-import org.bukkit.ChatColor;
+-import org.bukkit.command.Command;
+-import org.bukkit.command.CommandSender;
+-import org.bukkit.command.ConsoleCommandSender;
+-import org.bukkit.command.MultipleCommandAlias;
+-import org.bukkit.help.HelpTopic;
+-
+-/**
+- * This is a help topic implementation for {@link MultipleCommandAlias} commands.
+- */
+-public class MultipleCommandAliasHelpTopic extends HelpTopic {
+-
+-    private final MultipleCommandAlias alias;
+-
+-    public MultipleCommandAliasHelpTopic(MultipleCommandAlias alias) {
+-        this.alias = alias;
+-
+-        name = "/" + alias.getLabel();
+-
+-        // Build short text
+-        StringBuilder sb = new StringBuilder();
+-        for (int i = 0; i < alias.getCommands().length; i++) {
+-            if (i != 0) {
+-                sb.append(ChatColor.GOLD + " > " + ChatColor.WHITE);
+-            }
+-            sb.append("/");
+-            sb.append(alias.getCommands()[i].getLabel());
+-        }
+-        shortText = sb.toString();
+-
+-        // Build full text
+-        fullText = ChatColor.GOLD + "Alias for: " + ChatColor.WHITE + getShortText();
+-    }
+-
+-    public boolean canSee(CommandSender sender) {
+-        if (amendedPermission == null) {
+-            if (sender instanceof ConsoleCommandSender) {
+-                return true;
+-            }
+-
+-            for (Command command : alias.getCommands()) {
+-                if (!command.testPermissionSilent(sender)) {
+-                    return false;
+-                }
+-            }
+-
+-            return true;
+-        } else {
+-            return sender.hasPermission(amendedPermission);
+-        }
+-    }
+-}
+diff --git a/src/main/java/org/bukkit/craftbukkit/help/MultipleCommandAliasHelpTopicFactory.java b/src/main/java/org/bukkit/craftbukkit/help/MultipleCommandAliasHelpTopicFactory.java
+deleted file mode 100644
+index 36ddc97683e132d066998bd22111cddca069f2f0..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/craftbukkit/help/MultipleCommandAliasHelpTopicFactory.java
++++ /dev/null
+@@ -1,15 +0,0 @@
+-package org.bukkit.craftbukkit.help;
+-
+-import org.bukkit.command.MultipleCommandAlias;
+-import org.bukkit.help.HelpTopic;
+-import org.bukkit.help.HelpTopicFactory;
+-
+-/**
+- * This class creates {@link MultipleCommandAliasHelpTopic} help topics from {@link MultipleCommandAlias} commands.
+- */
+-public class MultipleCommandAliasHelpTopicFactory implements HelpTopicFactory<MultipleCommandAlias> {
+-
+-    public HelpTopic createTopic(MultipleCommandAlias multipleCommandAlias) {
+-        return new MultipleCommandAliasHelpTopic(multipleCommandAlias);
+-    }
+-}
+diff --git a/src/main/java/org/bukkit/craftbukkit/help/SimpleHelpMap.java b/src/main/java/org/bukkit/craftbukkit/help/SimpleHelpMap.java
+deleted file mode 100644
+index 7dd5afef0a96a2de2ad5c758a8ac33ccde48200d..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/craftbukkit/help/SimpleHelpMap.java
++++ /dev/null
+@@ -1,219 +0,0 @@
+-package org.bukkit.craftbukkit.help;
+-
+-import com.google.common.base.Predicate;
+-import com.google.common.base.Predicates;
+-import com.google.common.collect.Collections2;
+-
+-import org.bukkit.command.*;
+-import org.bukkit.command.defaults.BukkitCommand;
+-import org.bukkit.command.defaults.VanillaCommand;
+-import org.bukkit.craftbukkit.CraftServer;
+-import org.bukkit.craftbukkit.command.VanillaCommandWrapper;
+-import org.bukkit.help.*;
+-
+-import java.util.*;
+-
+-/**
+- * Standard implementation of {@link HelpMap} for CraftBukkit servers.
+- */
+-public class SimpleHelpMap implements HelpMap {
+-
+-    private HelpTopic defaultTopic;
+-    private final Map<String, HelpTopic> helpTopics;
+-    private final Map<Class, HelpTopicFactory<Command>> topicFactoryMap;
+-    private final CraftServer server;
+-    private HelpYamlReader yaml;
+-
+-    @SuppressWarnings("unchecked")
+-    public SimpleHelpMap(CraftServer server) {
+-        this.helpTopics = new TreeMap<String, HelpTopic>(HelpTopicComparator.topicNameComparatorInstance()); // Using a TreeMap for its explicit sorting on key
+-        this.topicFactoryMap = new HashMap<Class, HelpTopicFactory<Command>>();
+-        this.server = server;
+-        this.yaml = new HelpYamlReader(server);
+-
+-        Predicate indexFilter = Predicates.not(Predicates.instanceOf(CommandAliasHelpTopic.class));
+-        if (!yaml.commandTopicsInMasterIndex()) {
+-            indexFilter = Predicates.and(indexFilter, Predicates.not(new IsCommandTopicPredicate()));
+-        }
+-
+-        this.defaultTopic = new IndexHelpTopic("Index", null, null, Collections2.filter(helpTopics.values(), indexFilter), "Use /help [n] to get page n of help.");
+-
+-        registerHelpTopicFactory(MultipleCommandAlias.class, new MultipleCommandAliasHelpTopicFactory());
+-    }
+-
+-    public synchronized HelpTopic getHelpTopic(String topicName) {
+-        if (topicName.equals("")) {
+-            return defaultTopic;
+-        }
+-
+-        if (helpTopics.containsKey(topicName)) {
+-            return helpTopics.get(topicName);
+-        }
+-
+-        return null;
+-    }
+-
+-    public Collection<HelpTopic> getHelpTopics() {
+-        return helpTopics.values();
+-    }
+-
+-    public synchronized void addTopic(HelpTopic topic) {
+-        // Existing topics take priority
+-        if (!helpTopics.containsKey(topic.getName())) {
+-            helpTopics.put(topic.getName(), topic);
+-        }
+-    }
+-
+-    public synchronized void clear() {
+-        helpTopics.clear();
+-    }
+-
+-    public List<String> getIgnoredPlugins() {
+-        return yaml.getIgnoredPlugins();
+-    }
+-
+-    /**
+-     * Reads the general topics from help.yml and adds them to the help index.
+-     */
+-    public synchronized void initializeGeneralTopics() {
+-        yaml = new HelpYamlReader(server);
+-
+-        // Initialize general help topics from the help.yml file
+-        for (HelpTopic topic : yaml.getGeneralTopics()) {
+-            addTopic(topic);
+-        }
+-
+-        // Initialize index help topics from the help.yml file
+-        for (HelpTopic topic : yaml.getIndexTopics()) {
+-            if (topic.getName().equals("Default")) {
+-                defaultTopic = topic;
+-            } else {
+-                addTopic(topic);
+-            }
+-        }
+-    }
+-
+-    /**
+-     * Processes all the commands registered in the server and creates help topics for them.
+-     */
+-    public synchronized void initializeCommands() {
+-        // ** Load topics from highest to lowest priority order **
+-        Set<String> ignoredPlugins = new HashSet<String>(yaml.getIgnoredPlugins());
+-
+-        // Don't load any automatic help topics if All is ignored
+-        if (ignoredPlugins.contains("All")) {
+-            return;
+-        }
+-
+-        // Initialize help topics from the server's command map
+-        outer: for (Command command : server.getCommandMap().getCommands()) {
+-            if (commandInIgnoredPlugin(command, ignoredPlugins)) {
+-                continue;
+-            }
+-
+-            // Register a topic
+-            for (Class c : topicFactoryMap.keySet()) {
+-                if (c.isAssignableFrom(command.getClass())) {
+-                    HelpTopic t = topicFactoryMap.get(c).createTopic(command);
+-                    if (t != null) addTopic(t);
+-                    continue outer;
+-                }
+-                if (command instanceof PluginCommand && c.isAssignableFrom(((PluginCommand)command).getExecutor().getClass())) {
+-                    HelpTopic t = topicFactoryMap.get(c).createTopic(command);
+-                    if (t != null) addTopic(t);
+-                    continue outer;
+-                }
+-            }
+-            addTopic(new GenericCommandHelpTopic(command));
+-        }
+-
+-        // Initialize command alias help topics
+-        for (Command command : server.getCommandMap().getCommands()) {
+-            if (commandInIgnoredPlugin(command, ignoredPlugins)) {
+-                continue;
+-            }
+-            for (String alias : command.getAliases()) {
+-                // Only register if this command owns the alias
+-                if (server.getCommandMap().getCommand(alias) == command) {
+-                    addTopic(new CommandAliasHelpTopic("/" + alias, "/" + command.getLabel(), this));
+-                }
+-            }
+-        }
+-
+-        // Add alias sub-index
+-        Collection<HelpTopic> filteredTopics = Collections2.filter(helpTopics.values(), Predicates.instanceOf(CommandAliasHelpTopic.class));
+-        if (!filteredTopics.isEmpty()) {
+-            addTopic(new IndexHelpTopic("Aliases", "Lists command aliases", null, filteredTopics));
+-        }
+-
+-        // Initialize plugin-level sub-topics
+-        Map<String, Set<HelpTopic>> pluginIndexes = new HashMap<String, Set<HelpTopic>>();
+-        fillPluginIndexes(pluginIndexes, server.getCommandMap().getCommands());
+-
+-        for (Map.Entry<String, Set<HelpTopic>> entry : pluginIndexes.entrySet()) {
+-            addTopic(new IndexHelpTopic(entry.getKey(), "All commands for " + entry.getKey(), null, entry.getValue(), "Below is a list of all " + entry.getKey() + " commands:"));
+-        }
+-
+-        // Amend help topics from the help.yml file
+-        for (HelpTopicAmendment amendment : yaml.getTopicAmendments()) {
+-            if (helpTopics.containsKey(amendment.getTopicName())) {
+-                helpTopics.get(amendment.getTopicName()).amendTopic(amendment.getShortText(), amendment.getFullText());
+-                if (amendment.getPermission() != null) {
+-                    helpTopics.get(amendment.getTopicName()).amendCanSee(amendment.getPermission());
+-                }
+-            }
+-        }
+-    }
+-
+-    private void fillPluginIndexes(Map<String, Set<HelpTopic>> pluginIndexes, Collection<? extends Command> commands) {
+-        for (Command command : commands) {
+-            String pluginName = getCommandPluginName(command);
+-            if (pluginName != null) {
+-                HelpTopic topic = getHelpTopic("/" + command.getLabel());
+-                if (topic != null) {
+-                    if (!pluginIndexes.containsKey(pluginName)) {
+-                        pluginIndexes.put(pluginName, new TreeSet<HelpTopic>(HelpTopicComparator.helpTopicComparatorInstance())); //keep things in topic order
+-                    }
+-                    pluginIndexes.get(pluginName).add(topic);
+-                }
+-            }
+-        }
+-    }
+-
+-    private String getCommandPluginName(Command command) {
+-        if (command instanceof VanillaCommandWrapper) {
+-            return "Minecraft";
+-        }
+-        if (command instanceof BukkitCommand || command instanceof VanillaCommand) {
+-            return "Bukkit";
+-        }
+-        if (command instanceof PluginIdentifiableCommand) {
+-            return ((PluginIdentifiableCommand)command).getPlugin().getName();
+-        }
+-        return null;
+-    }
+-
+-    private boolean commandInIgnoredPlugin(Command command, Set<String> ignoredPlugins) {
+-        if ((command instanceof BukkitCommand || command instanceof VanillaCommand) && ignoredPlugins.contains("Bukkit")) {
+-            return true;
+-        }
+-        if (command instanceof PluginIdentifiableCommand && ignoredPlugins.contains(((PluginIdentifiableCommand)command).getPlugin().getName())) {
+-            return true;
+-        }
+-        return false;
+-    }
+-
+-    public void registerHelpTopicFactory(Class commandClass, HelpTopicFactory factory) {
+-        if (!Command.class.isAssignableFrom(commandClass) && !CommandExecutor.class.isAssignableFrom(commandClass)) {
+-            throw new IllegalArgumentException("commandClass must implement either Command or CommandExecutor!");
+-        }
+-        topicFactoryMap.put(commandClass, factory);
+-    }
+-
+-    private class IsCommandTopicPredicate implements Predicate<HelpTopic> {
+-
+-        public boolean apply(HelpTopic topic) {
+-            return topic.getName().charAt(0) == '/';
+-        }
+-    }
+-}
+diff --git a/src/main/resources/configurations/help.yml b/src/main/resources/configurations/help.yml
+deleted file mode 100644
+index 15c3d07070624ad453032a02d8d4d3f26bd6cb8d..0000000000000000000000000000000000000000
+--- a/src/main/resources/configurations/help.yml
++++ /dev/null
+@@ -1,55 +0,0 @@
+-# This is the help configuration file for Bukkit.
+-# 
+-# By default you do not need to modify this file. Help topics for all plugin commands are automatically provided by
+-# or extracted from your installed plugins. You only need to modify this file if you wish to add new help pages to
+-# your server or override the help pages of existing plugin commands.
+-# 
+-# This file is divided up into the following parts:
+-# -- general-topics: lists admin defined help topics
+-# -- index-topics:   lists admin defined index topics
+-# -- amend-topics:   lists topic amendments to apply to existing help topics
+-# -- ignore-plugins: lists any plugins that should be excluded from help
+-# 
+-# Examples are given below. When amending command topic, the string <text> will be replaced with the existing value
+-# in the help topic. Color codes can be used in topic text. The color code character is & followed by 0-F.
+-# ================================================================
+-# 
+-# Set this to true to list the individual command help topics in the master help.
+-# command-topics-in-master-index: true
+-# 
+-# Each general topic will show up as a separate topic in the help index along with all the plugin command topics.
+-# general-topics:
+-#     Rules:
+-#         shortText: Rules of the server
+-#         fullText: |
+-#             &61. Be kind to your fellow players.
+-#             &B2. No griefing.
+-#             &D3. No swearing.
+-#         permission: topics.rules
+-# 
+-# Each index topic will show up as a separate sub-index in the help index along with all the plugin command topics.
+-# To override the default help index (displayed when the user executes /help), name the index topic "Default".
+-# index-topics:
+-#     Ban Commands:
+-#         shortText: Player banning commands
+-#         preamble: Moderator - do not abuse these commands
+-#         permission: op
+-#         commands:
+-#             - /ban
+-#             - /ban-ip
+-#             - /banlist
+-# 
+-# Topic amendments are used to change the content of automatically generated plugin command topics.
+-# amended-topics:
+-#     /stop:
+-#         shortText: Stops the server cold....in its tracks!
+-#         fullText: <text> - This kills the server.
+-#         permission: you.dont.have
+-# 
+-# Any plugin in the ignored plugins list will be excluded from help. The name must match the name displayed by
+-# the /plugins command. Ignore "Bukkit" to remove the standard bukkit commands from the index. Ignore "All"
+-# to completely disable automatic help topic generation.
+-# ignore-plugins:
+-#    - PluginNameOne
+-#    - PluginNameTwo
+-#    - PluginNameThree

@@ -1,0 +1,84 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Mon, 1 Jul 2024 15:36:44 +0500
+Subject: [PATCH] Remove permissions.yml file and his logic.
+
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index a1044fa605952d23b7d51add8f3bea10ca995b3c..5233ad1c5012ee1df5705627dced1de597f96424 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -359,7 +359,6 @@ public final class CraftServer implements Server {
+             setVanillaCommands(false);
+             // Spigot end
+             commandMap.registerServerAliases();
+-            loadCustomPermissions();
+             DefaultPermissions.registerCorePermissions();
+             CraftDefaultPermissions.registerCorePermissions();
+             helpMap.initializeCommands();
+@@ -811,53 +810,6 @@ public final class CraftServer implements Server {
+         }
+     }
+ 
+-    @SuppressWarnings({ "unchecked", "finally" })
+-    private void loadCustomPermissions() {
+-        File file = new File(configuration.getString("settings.permissions-file"));
+-        FileInputStream stream;
+-
+-        try {
+-            stream = new FileInputStream(file);
+-        } catch (FileNotFoundException ex) {
+-            try {
+-                file.createNewFile();
+-            } finally {
+-                return;
+-            }
+-        }
+-
+-        Map<String, Map<String, Object>> perms;
+-
+-        try {
+-            perms = (Map<String, Map<String, Object>>) yaml.load(stream);
+-        } catch (MarkedYAMLException ex) {
+-            getLogger().log(Level.WARNING, "Server permissions file " + file + " is not valid YAML: " + ex.toString());
+-            return;
+-        } catch (Throwable ex) {
+-            getLogger().log(Level.WARNING, "Server permissions file " + file + " is not valid YAML.", ex);
+-            return;
+-        } finally {
+-            try {
+-                stream.close();
+-            } catch (IOException ex) {}
+-        }
+-
+-        if (perms == null) {
+-            getLogger().log(Level.INFO, "Server permissions file " + file + " is empty, ignoring it");
+-            return;
+-        }
+-
+-        List<Permission> permsList = Permission.loadPermissions(perms, "Permission node '%s' in " + file + " is invalid", Permission.DEFAULT_PERMISSION);
+-
+-        for (Permission perm : permsList) {
+-            try {
+-                pluginManager.addPermission(perm);
+-            } catch (IllegalArgumentException ex) {
+-                getLogger().log(Level.SEVERE, "Permission in " + file + " was already defined", ex);
+-            }
+-        }
+-    }
+-
+     @Override
+     public String toString() {
+         return "CraftServer{" + "serverName=" + serverName + ",serverVersion=" + serverVersion + ",minecraftVersion=" + console.getVersion() + '}';
+diff --git a/src/main/resources/configurations/bukkit.yml b/src/main/resources/configurations/bukkit.yml
+index 8bbb835f4eeb4b188269de38060444a512eddc4a..5f50e6fe9a511d28bc6221322c17baf96dd6507e 100644
+--- a/src/main/resources/configurations/bukkit.yml
++++ b/src/main/resources/configurations/bukkit.yml
+@@ -15,7 +15,6 @@
+ settings:
+     allow-end: true
+     warn-on-overload: true
+-    permissions-file: permissions.yml
+     update-folder: update
+     plugin-profiling: false
+     connection-throttle: 4000

@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Sat, 6 Jul 2024 12:54:11 +0500
+Subject: [PATCH] Do not load chunk for light check
+
+
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index 38ebe35f6fa434103b52e86262c7f4cc32d486e3..60e2378e15a2c84f87234044c24d5c0348a01b28 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -667,6 +667,10 @@ public abstract class World implements IBlockAccess {
+                 blockposition = new BlockPosition(blockposition.getX(), 255, blockposition.getZ());
+             }
+ 
++            // FlamePaper start - Do not load chunks for light checks
++            if (!this.isLoaded(blockposition)) return 0;
++            // FlamePaper end - Do not load chunks for light checks
++
+             return this.getChunkAtWorldCoords(blockposition).a(blockposition, 0);
+         }
+     }
+@@ -744,6 +748,8 @@ public abstract class World implements IBlockAccess {
+                     blockposition = new BlockPosition(blockposition.getX(), 255, blockposition.getZ());
+                 }
+ 
++                if (!this.isLoaded(blockposition)) return 0; // Paper
++
+                 Chunk chunk = this.getChunkAtWorldCoords(blockposition);
+ 
+                 return chunk.a(blockposition, this.I);

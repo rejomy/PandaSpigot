@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Sat, 5 Oct 2024 07:07:59 +0500
+Subject: [PATCH] Useless
+
+
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index b1aa4792e5d2e42e8dcfa0b5b5e55b6da571b241..1487b1d2c548611f182e6ba4d714c7c14a437ce6 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -720,12 +720,6 @@ public abstract class EntityLiving extends Entity {
+             } else if (damagesource.o() && this.hasEffect(MobEffectList.FIRE_RESISTANCE)) {
+                 return false;
+             } else {
+-                // CraftBukkit - Moved into d(DamageSource, float)
+-                if (false && (damagesource == DamageSource.ANVIL || damagesource == DamageSource.FALLING_BLOCK) && this.getEquipment(4) != null) {
+-                    this.getEquipment(4).damage((int) (f * 4.0F + this.random.nextFloat() * f * 2.0F), this);
+-                    f *= 0.75F;
+-                }
+-
+                 this.aB = 1.5F;
+                 boolean flag = true;
+ 
+@@ -744,7 +738,6 @@ public abstract class EntityLiving extends Entity {
+                     flag = false;
+                 } else {
+                     // CraftBukkit start
+-                    float previousHealth = this.getHealth();
+                     if (!this.d(damagesource, f)) {
+                         return false;
+                     }

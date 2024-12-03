@@ -1,0 +1,96 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Sat, 6 Jul 2024 10:18:15 +0500
+Subject: [PATCH] Remove /reload command
+
+
+diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
+index f07d223736bfc88d76a2a4bcb69733c78edb34ce..4d34592c0bcdcbc3823eb9480a7a7c280410329e 100644
+--- a/src/main/java/org/bukkit/Bukkit.java
++++ b/src/main/java/org/bukkit/Bukkit.java
+@@ -532,13 +532,6 @@ public final class Bukkit {
+         return server.createMap(world);
+     }
+ 
+-    /**
+-     * Reloads the server, refreshing settings and plugin information.
+-     */
+-    public static void reload() {
+-        server.reload();
+-    }
+-
+     /**
+      * Returns the primary logger associated with this server instance.
+      *
+diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
+index 345c61f71f73348c87061ac150994916baf65eed..f90a1af01d8abb2b6f081e15643af4a8b35ab70b 100644
+--- a/src/main/java/org/bukkit/Server.java
++++ b/src/main/java/org/bukkit/Server.java
+@@ -425,11 +425,6 @@ public interface Server extends PluginMessageRecipient {
+      */
+     public MapView createMap(World world);
+ 
+-    /**
+-     * Reloads the server, refreshing settings and plugin information.
+-     */
+-    public void reload();
+-
+     /**
+      * Returns the primary logger associated with this server instance.
+      *
+diff --git a/src/main/java/org/bukkit/command/SimpleCommandMap.java b/src/main/java/org/bukkit/command/SimpleCommandMap.java
+index 591674292b37b2271acd2a917a2692a6393c4522..99b231ad180aaf183ea1c3924eb793693e211866 100644
+--- a/src/main/java/org/bukkit/command/SimpleCommandMap.java
++++ b/src/main/java/org/bukkit/command/SimpleCommandMap.java
+@@ -33,7 +33,6 @@ public class SimpleCommandMap implements CommandMap {
+ 
+     private void setDefaultCommands() {
+         register("bukkit", new VersionCommand("version"));
+-        register("bukkit", new ReloadCommand("reload"));
+         register("bukkit", new PluginsCommand("plugins"));
+         register("bukkit", new co.aikar.timings.TimingsCommand("timings")); // Spigot
+     }
+diff --git a/src/main/java/org/bukkit/command/defaults/ReloadCommand.java b/src/main/java/org/bukkit/command/defaults/ReloadCommand.java
+deleted file mode 100644
+index c70d512935ad698d572cb48d549fe05bd9524604..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/command/defaults/ReloadCommand.java
++++ /dev/null
+@@ -1,38 +0,0 @@
+-package org.bukkit.command.defaults;
+-
+-import java.util.Arrays;
+-
+-import org.bukkit.Bukkit;
+-import org.bukkit.ChatColor;
+-import org.bukkit.command.Command;
+-import org.bukkit.command.CommandSender;
+-
+-public class ReloadCommand extends BukkitCommand {
+-    public ReloadCommand(String name) {
+-        super(name);
+-        this.description = "Reloads the server configuration and plugins";
+-        this.usageMessage = "/reload";
+-        this.setPermission("bukkit.command.reload");
+-        this.setAliases(Arrays.asList("rl"));
+-    }
+-
+-    @Override
+-    public boolean execute(CommandSender sender, String currentAlias, String[] args) {
+-        if (!testPermission(sender)) return true;
+-
+-        Command.broadcastCommandMessage(sender, ChatColor.RED + "Please note that this command is not supported and may cause issues when using some plugins.");
+-        Command.broadcastCommandMessage(sender, ChatColor.RED + "If you encounter any issues please use the /stop command to restart your server.");
+-        Bukkit.reload();
+-        Command.broadcastCommandMessage(sender, ChatColor.GREEN + "Reload complete.");
+-
+-        return true;
+-    }
+-
+-    // Spigot Start
+-    @Override
+-    public java.util.List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException
+-    {
+-        return java.util.Collections.emptyList();
+-    }
+-    // Spigot End
+-}

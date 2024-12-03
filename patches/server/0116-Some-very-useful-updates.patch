@@ -1,0 +1,470 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Sat, 5 Oct 2024 07:02:00 +0500
+Subject: [PATCH] Some very useful updates!!!
+
+
+diff --git a/src/main/java/net/minecraft/server/BlockIce.java b/src/main/java/net/minecraft/server/BlockIce.java
+index be8bb5befe281f6bd9a42246341434247e34b393..68a631488e9adbd4884b3c575bc823e8738df6f6 100644
+--- a/src/main/java/net/minecraft/server/BlockIce.java
++++ b/src/main/java/net/minecraft/server/BlockIce.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.server;
+ 
++import org.bukkit.Bukkit;
++
+ import java.util.Random;
+ 
+ public class BlockIce extends BlockHalfTransparent {
+diff --git a/src/main/java/net/minecraft/server/BlockSponge.java b/src/main/java/net/minecraft/server/BlockSponge.java
+index de7714ea58edd5e2e887c50bebd9a5b875676e18..394d4c3a0b6e9a1d07d6b084f611cdfc68bf7b05 100644
+--- a/src/main/java/net/minecraft/server/BlockSponge.java
++++ b/src/main/java/net/minecraft/server/BlockSponge.java
+@@ -1,9 +1,14 @@
+ package net.minecraft.server;
+ 
+ import com.google.common.collect.Lists;
++import org.bukkit.Bukkit;
++import org.bukkit.event.block.SpongeAbsorbEvent;
++
+ import java.util.ArrayList;
++import java.util.Collections;
+ import java.util.Iterator;
+ import java.util.LinkedList;
++import java.util.stream.Collectors;
+ 
+ public class BlockSponge extends Block {
+ 
+@@ -41,8 +46,16 @@ public class BlockSponge extends Block {
+     }
+ 
+     private boolean e(World world, BlockPosition blockposition) {
++        org.bukkit.block.Block block = world.getWorld().getBlockAt(blockposition.getX(), blockposition.getY(), blockposition.getZ());
++        // You can only cancel the event, but in vanilla, players can modify list.
++        SpongeAbsorbEvent event = new SpongeAbsorbEvent(block, Collections.EMPTY_LIST);
++
++        world.getServer().getPluginManager().callEvent(event);
++
++        if (event.isCancelled()) return false;
++
+         LinkedList linkedlist = Lists.newLinkedList();
+-        ArrayList arraylist = Lists.newArrayList();
++        ArrayList<BlockPosition> arraylist = Lists.newArrayList();
+ 
+         linkedlist.add(new Tuple(blockposition, Integer.valueOf(0)));
+         int i = 0;
+diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
+index 8c5648906441130cd11ddbfcb060621aab3658f8..1523552742d7c9aa547e40ab057ff3efc753b4fb 100644
+--- a/src/main/java/net/minecraft/server/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/DedicatedServer.java
+@@ -148,7 +148,6 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+         this.setSpawnAnimals(this.propertyManager.getBoolean("spawn-animals", true));
+         this.setSpawnNPCs(this.propertyManager.getBoolean("spawn-npcs", true));
+         this.setPVP(this.propertyManager.getBoolean("pvp", true));
+-        this.setAllowFlight(this.propertyManager.getBoolean("allow-flight", false));
+         this.setResourcePack(this.propertyManager.getString("resource-pack", ""), this.propertyManager.getString("resource-pack-hash", ""));
+         this.setMotd(this.propertyManager.getString("motd", "A Minecraft Server"));
+         this.setForceGamemode(this.propertyManager.getBoolean("force-gamemode", false));
+diff --git a/src/main/java/net/minecraft/server/EntityTypes.java b/src/main/java/net/minecraft/server/EntityTypes.java
+index 064d0b2047498b2268f2d56233ac2beb6966ac6c..f1fa7d4e3c6d42232f258c28a928ab1b48068e23 100644
+--- a/src/main/java/net/minecraft/server/EntityTypes.java
++++ b/src/main/java/net/minecraft/server/EntityTypes.java
+@@ -79,8 +79,6 @@ public class EntityTypes {
+ 
+         if (entity != null) {
+             entity.f(nbttagcompound);
+-        } else {
+-            EntityTypes.b.warn("Skipping Entity with id " + nbttagcompound.getString("id"));
+         }
+ 
+         return entity;
+diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
+index 8261a8cdc82e951d53c06659ce0ac8f65c65e12e..2f5706860b17c41133e0984a100b442ee596b454 100644
+--- a/src/main/java/net/minecraft/server/PlayerConnection.java
++++ b/src/main/java/net/minecraft/server/PlayerConnection.java
+@@ -80,8 +80,6 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
+     public EntityPlayer player;
+     private int e;
+     private int f;
+-    private int g;
+-    private boolean h;
+     private int i;
+     private long j;
+     private long k;
+@@ -132,7 +130,6 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
+     // CraftBukkit end
+ 
+     public void c() {
+-        this.h = false;
+         ++this.e;
+         this.minecraftServer.methodProfiler.a("keepAlive");
+         if ((long) this.e - this.k > 40L) {
+@@ -217,7 +214,6 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
+         } else {
+             WorldServer worldserver = this.minecraftServer.getWorldServer(this.player.dimension);
+ 
+-            this.h = true;
+             if (!this.player.viewingCredits) {
+                 double d0 = this.player.locX;
+                 double d1 = this.player.locY;
+@@ -408,13 +404,6 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
+                     double d14 = this.player.motX * this.player.motX + this.player.motY * this.player.motY + this.player.motZ * this.player.motZ;
+                     double d15 = d11 * d11 + d12 * d12 + d13 * d13;
+ 
+-                    // Spigot: make "moved too quickly" limit configurable
+-                    if (d15 - d14 > org.spigotmc.SpigotConfig.movedTooQuicklyThreshold && this.checkMovement && (!this.minecraftServer.T() || !this.minecraftServer.S().equals(this.player.getName()))) { // CraftBukkit - Added this.checkMovement condition to solve this check being triggered by teleports
+-                        PlayerConnection.c.warn(this.player.getName() + " moved too quickly! " + d11 + "," + d12 + "," + d13 + " (" + d11 + ", " + d12 + ", " + d13 + ")");
+-                        this.a(this.o, this.p, this.q, this.player.yaw, this.player.pitch);
+-                        return;
+-                    }
+-
+                     float f4 = 0.0625F;
+                     boolean flag = worldserver.getCubes(this.player, this.player.getBoundingBox().shrink((double) f4, (double) f4, (double) f4)).isEmpty();
+ 
+@@ -424,50 +413,18 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
+ 
+                     this.player.move(d11, d12, d13);
+                     this.player.onGround = packetplayinflying.f();
+-                    double d16 = d12;
+-
+-                    d11 = d7 - this.player.locX;
+-                    d12 = d8 - this.player.locY;
+-                    if (d12 > -0.5D || d12 < 0.5D) {
+-                        d12 = 0.0D;
+-                    }
+-
+-                    d13 = d9 - this.player.locZ;
+-                    d15 = d11 * d11 + d12 * d12 + d13 * d13;
+-                    boolean flag1 = false;
+-
+-                    // Spigot: make "moved wrongly" limit configurable
+-                    if (d15 > org.spigotmc.SpigotConfig.movedWronglyThreshold && !this.player.isSleeping() && !this.player.playerInteractManager.isCreative()) {
+-                        flag1 = true;
+-                        PlayerConnection.c.warn(this.player.getName() + " moved wrongly!");
+-                    }
+ 
+                     this.player.setLocation(d7, d8, d9, f2, f3);
+                     this.player.checkMovement(this.player.locX - d0, this.player.locY - d1, this.player.locZ - d2);
+                     if (!this.player.noclip) {
+                         boolean flag2 = worldserver.getCubes(this.player, this.player.getBoundingBox().shrink((double) f4, (double) f4, (double) f4)).isEmpty();
+ 
+-                        if (flag && (flag1 || !flag2) && !this.player.isSleeping()) {
++                        if (flag && (!flag2) && !this.player.isSleeping()) {
+                             this.a(this.o, this.p, this.q, f2, f3);
+                             return;
+                         }
+                     }
+ 
+-                    AxisAlignedBB axisalignedbb = this.player.getBoundingBox().grow((double) f4, (double) f4, (double) f4).a(0.0D, -0.55D, 0.0D);
+-
+-                    if (!this.minecraftServer.getAllowFlight() && !this.player.abilities.canFly && !worldserver.c(axisalignedbb)) {
+-                        if (d16 >= -0.03125D) {
+-                            ++this.g;
+-                            if (this.g > 80) {
+-                                PlayerConnection.c.warn(this.player.getName() + " was kicked for floating too long!");
+-                                this.disconnect("Flying is not enabled on this server");
+-                                return;
+-                            }
+-                        }
+-                    } else {
+-                        this.g = 0;
+-                    }
+-
+                     this.player.onGround = packetplayinflying.f();
+                     this.minecraftServer.getPlayerList().d(this.player);
+                     this.player.a(this.player.locY - d10, packetplayinflying.f());
+diff --git a/src/main/java/net/minecraft/server/PlayerInteractManager.java b/src/main/java/net/minecraft/server/PlayerInteractManager.java
+index 33a0a095ff525349275e5319999c1437091e0671..f4f32194bc07b74bb7bc9b678868ada74c385b61 100644
+--- a/src/main/java/net/minecraft/server/PlayerInteractManager.java
++++ b/src/main/java/net/minecraft/server/PlayerInteractManager.java
+@@ -1,10 +1,9 @@
+ package net.minecraft.server;
+ 
+ // CraftBukkit start
+-import org.bukkit.event.block.BlockBreakEvent;
++import org.bukkit.event.block.*;
+ import org.bukkit.craftbukkit.event.CraftEventFactory;
+ import org.bukkit.event.Event;
+-import org.bukkit.event.block.Action;
+ import org.bukkit.event.player.PlayerInteractEvent;
+ // CraftBukkit end
+ 
+@@ -236,7 +235,7 @@ public class PlayerInteractManager {
+     private boolean c(BlockPosition blockposition) {
+         IBlockData iblockdata = this.world.getType(blockposition);
+ 
+-        iblockdata.getBlock().a(this.world, blockposition, iblockdata, (EntityHuman) this.player);
++        iblockdata.getBlock().a(this.world, blockposition, iblockdata, this.player);
+         boolean flag = this.world.setAir(blockposition);
+ 
+         if (flag) {
+@@ -276,7 +275,6 @@ public class PlayerInteractManager {
+             if (nmsBlock != null && !event.isCancelled() && !this.isCreative() && this.player.b(nmsBlock)) {
+                 // Copied from block.a(World world, EntityHuman entityhuman, BlockPosition blockposition, IBlockData iblockdata, TileEntity tileentity)
+                 if (!(nmsBlock.I() && EnchantmentManager.hasSilkTouchEnchantment(this.player))) {
+-                    int data = block.getData();
+                     int bonusLevel = EnchantmentManager.getBonusBlockLootEnchantmentLevel(this.player);
+ 
+                     event.setExpToDrop(nmsBlock.getExpDrop(this.world, nmsData, bonusLevel));
+@@ -290,7 +288,7 @@ public class PlayerInteractManager {
+                     return false;
+                 }
+                 // Let the client know the block still exists
+-                ((EntityPlayer) this.player).playerConnection.sendPacket(new PacketPlayOutBlockChange(this.world, blockposition));
++                this.player.playerConnection.sendPacket(new PacketPlayOutBlockChange(this.world, blockposition));
+                 // Update any tile entity data for this block
+                 TileEntity tileentity = this.world.getTileEntity(blockposition);
+                 if (tileentity != null) {
+@@ -299,9 +297,8 @@ public class PlayerInteractManager {
+                 return false;
+             }
+         }
+-        if (false && this.gamemode.d() && this.player.bA() != null && this.player.bA().getItem() instanceof ItemSword) {
+-            return false;
+-        } else {
++
++        {
+             IBlockData iblockdata = this.world.getType(blockposition);
+             if (iblockdata.getBlock() == Blocks.AIR) return false; // CraftBukkit - A plugin set block to air without cancelling
+             TileEntity tileentity = this.world.getTileEntity(blockposition);
+@@ -348,7 +345,14 @@ public class PlayerInteractManager {
+                 }
+ 
+                 if (flag && flag1) {
+-                    iblockdata.getBlock().a(this.world, this.player, blockposition, iblockdata, tileentity);
++                    org.bukkit.block.Block block = this.world.getWorld().getBlockAt(blockposition.getX(), blockposition.getY(), blockposition.getZ());
++
++                    BlockFadeEvent fadeEvent = new BlockFadeEvent(block, block.getState());
++                    world.getServer().getPluginManager().callEvent(fadeEvent);
++
++                    if (!fadeEvent.isCancelled()) {
++                        iblockdata.getBlock().a(this.world, this.player, blockposition, iblockdata, tileentity);
++                    }
+                 }
+             }
+             
+diff --git a/src/main/java/net/minecraft/server/TileEntity.java b/src/main/java/net/minecraft/server/TileEntity.java
+index f68b132fb9d0b38f2ebc1e4c8c4ca6ef993fc72a..0fbe863c0cb1f824ec74262f10847e8d03d6d68e 100644
+--- a/src/main/java/net/minecraft/server/TileEntity.java
++++ b/src/main/java/net/minecraft/server/TileEntity.java
+@@ -8,6 +8,9 @@ import org.apache.logging.log4j.Logger;
+ 
+ import co.aikar.timings.SpigotTimings; // Spigot
+ import co.aikar.timings.Timing; // Spigot
++import org.bukkit.Bukkit;
++import org.bukkit.Server;
++import org.bukkit.craftbukkit.CraftServer;
+ import org.bukkit.inventory.InventoryHolder; // CraftBukkit
+ import org.github.paperspigot.exception.ServerInternalException;
+ 
+@@ -70,7 +73,7 @@ public abstract class TileEntity {
+         TileEntity tileentity = null;
+ 
+         try {
+-            Class oclass = (Class) TileEntity.f.get(nbttagcompound.getString("id"));
++            Class oclass = TileEntity.f.get(nbttagcompound.getString("id"));
+ 
+             if (oclass != null) {
+                 tileentity = (TileEntity) oclass.newInstance();
+@@ -82,8 +85,6 @@ public abstract class TileEntity {
+ 
+         if (tileentity != null) {
+             tileentity.a(nbttagcompound);
+-        } else {
+-            TileEntity.a.warn("Skipping BlockEntity with id " + nbttagcompound.getString("id"));
+         }
+ 
+         return tileentity;
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index 8f03d03eab77f5941c28f9bd8a811d5dfecbea76..c3c80f5703d9d4612abe3c3e74318ea9bd455188 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -49,6 +49,7 @@ import org.bukkit.conversations.Conversable;
+ import org.bukkit.craftbukkit.command.VanillaCommandWrapper;
+ import org.bukkit.craftbukkit.entity.CraftPlayer;
+ import org.bukkit.craftbukkit.generator.CraftChunkData;
++import org.bukkit.craftbukkit.help.SimpleHelpMap;
+ import org.bukkit.craftbukkit.inventory.CraftFurnaceRecipe;
+ import org.bukkit.craftbukkit.inventory.CraftInventoryCustom;
+ import org.bukkit.craftbukkit.inventory.CraftItemFactory;
+@@ -75,6 +76,7 @@ import org.bukkit.event.world.WorldInitEvent;
+ import org.bukkit.event.world.WorldLoadEvent;
+ import org.bukkit.event.world.WorldUnloadEvent;
+ import org.bukkit.generator.ChunkGenerator;
++import org.bukkit.help.HelpMap;
+ import org.bukkit.inventory.FurnaceRecipe;
+ import org.bukkit.inventory.ItemStack;
+ import org.bukkit.inventory.Inventory;
+@@ -1401,6 +1403,13 @@ public final class CraftServer implements Server {
+         return new CraftInventoryCustom(owner, type);
+     }
+ 
++    // Read fuck.txt
++    SimpleHelpMap simpleHelpMap = new SimpleHelpMap();
++    @Override
++    public HelpMap getHelpMap() {
++        return simpleHelpMap;
++    }
++
+     @Override
+     public Inventory createInventory(InventoryHolder owner, InventoryType type, String title) {
+         return new CraftInventoryCustom(owner, type, title);
+diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
+index 9d9ee845f06fb6210aa916b279ee0bfeafa7d163..e45dcf231ed785c14eac5bddc6d59a086aaac710 100644
+--- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
++++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
+@@ -20,8 +20,11 @@ import java.util.Set;
+ import java.util.UUID;
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
++
++import net.md_5.bungee.api.ChatMessageType;
+ import net.md_5.bungee.api.chat.BaseComponent;
+ 
++import net.md_5.bungee.api.chat.TextComponent;
+ import net.minecraft.server.*;
+ import net.minecraft.server.PacketPlayOutTitle.EnumTitleAction;
+ 
+@@ -1653,6 +1656,30 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+           sendMessage( new BaseComponent[] { component } );
+         }
+ 
++        @Override
++        public void sendMessage(ChatMessageType type, BaseComponent component) {
++            if (type == ChatMessageType.ACTION_BAR) {
++                if (!(component instanceof TextComponent)) {
++                    throw new UnsupportedOperationException("Trying to send message to action bar with not TextComponent component! [ " + component.getClass() + " ]");
++                }
++
++                sendActionBarMessage((TextComponent) component);
++            } else sendMessage( new BaseComponent[] { component } );
++        }
++
++        public void sendActionBarMessage(TextComponent component) {
++            if ( getHandle().playerConnection == null ) return;
++
++            // Создаем компонент текста
++            IChatBaseComponent chatComponent = IChatBaseComponent.ChatSerializer.a("{\"text\": \"" + component.getText() + "\"}");;
++
++            // Создаем пакет чата
++            PacketPlayOutChat packet = new PacketPlayOutChat(chatComponent, (byte) 2);
++
++            // Отправляем пакет игроку
++            getHandle().playerConnection.sendPacket(packet);
++        }
++
+         @Override
+         public void sendMessage(BaseComponent... components) {
+            if ( getHandle().playerConnection == null ) return;
+diff --git a/src/main/java/org/bukkit/craftbukkit/help/SimpleHelpMap.java b/src/main/java/org/bukkit/craftbukkit/help/SimpleHelpMap.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..9356e62a7b587b5602d30c151ed454a1b9573fa8
+--- /dev/null
++++ b/src/main/java/org/bukkit/craftbukkit/help/SimpleHelpMap.java
+@@ -0,0 +1,77 @@
++package org.bukkit.craftbukkit.help;
++
++import com.google.common.base.Predicate;
++import com.google.common.base.Predicates;
++import com.google.common.collect.Collections2;
++
++import org.bukkit.command.*;
++import org.bukkit.command.defaults.BukkitCommand;
++import org.bukkit.command.defaults.VanillaCommand;
++import org.bukkit.craftbukkit.CraftServer;
++import org.bukkit.craftbukkit.command.VanillaCommandWrapper;
++import org.bukkit.help.*;
++
++import java.util.*;
++
++/**
++ * Standard implementation of {@link HelpMap} for CraftBukkit servers.
++ */
++public class SimpleHelpMap implements HelpMap {
++
++    @SuppressWarnings("unchecked")
++    public SimpleHelpMap() {}
++
++    public synchronized HelpTopic getHelpTopic(String topicName) {
++        return null;
++    }
++
++    public Collection<HelpTopic> getHelpTopics() {
++        return Collections.emptyList();
++    }
++
++    public synchronized void addTopic(HelpTopic topic) {
++    }
++
++    public synchronized void clear() {
++    }
++
++    List<String> list = new ArrayList<>();
++    public List<String> getIgnoredPlugins() {
++        return list;
++    }
++
++    /**
++     * Reads the general topics from help.yml and adds them to the help index.
++     */
++    public synchronized void initializeGeneralTopics() {
++    }
++
++    /**
++     * Processes all the commands registered in the server and creates help topics for them.
++     */
++    public synchronized void initializeCommands() {
++    }
++
++    private void fillPluginIndexes(Map<String, Set<HelpTopic>> pluginIndexes, Collection<? extends Command> commands) {}
++
++    private String getCommandPluginName(Command command) {
++        return null;
++    }
++
++    private boolean commandInIgnoredPlugin(Command command, Set<String> ignoredPlugins) {
++        return false;
++    }
++
++    public void registerHelpTopicFactory(Class commandClass, HelpTopicFactory factory) {
++        if (!Command.class.isAssignableFrom(commandClass) && !CommandExecutor.class.isAssignableFrom(commandClass)) {
++            throw new IllegalArgumentException("commandClass must implement either Command or CommandExecutor!");
++        }
++    }
++
++    private class IsCommandTopicPredicate implements Predicate<HelpTopic> {
++
++        public boolean apply(HelpTopic topic) {
++            return topic.getName().charAt(0) == '/';
++        }
++    }
++}
+diff --git a/src/main/java/org/bukkit/craftbukkit/help/fuck.txt b/src/main/java/org/bukkit/craftbukkit/help/fuck.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..50231d02be30e8584facac62b467ccb1095f950a
+--- /dev/null
++++ b/src/main/java/org/bukkit/craftbukkit/help/fuck.txt
+@@ -0,0 +1,2 @@
++okay... i want to remove /help command and anything with this,
++but worldedit and player auctions is need this command and breaks when starting...
+diff --git a/src/main/java/org/spigotmc/SpigotConfig.java b/src/main/java/org/spigotmc/SpigotConfig.java
+index 32384024402450e5ec919bc98bdeb491b7e1f067..613d89fab92c731f43e4ce6816c6efe8ac7f6265 100644
+--- a/src/main/java/org/spigotmc/SpigotConfig.java
++++ b/src/main/java/org/spigotmc/SpigotConfig.java
+@@ -378,15 +378,11 @@ public class SpigotConfig
+     }
+ 
+     public static double movedWronglyThreshold;
+-    private static void movedWronglyThreshold()
+-    {
+-        movedWronglyThreshold = getDouble( "settings.moved-wrongly-threshold", 0.0625D );
+-    }
+ 
+     public static double movedTooQuicklyThreshold;
+     private static void movedTooQuicklyThreshold()
+     {
+-        movedTooQuicklyThreshold = getDouble( "settings.moved-too-quickly-threshold", 100.0D );
++        movedTooQuicklyThreshold = 100;
+     }
+ 
+     public static double maxHealth = 2048;

@@ -1,0 +1,182 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Sat, 5 Oct 2024 07:02:01 +0500
+Subject: [PATCH] Some very useful updates!!!
+
+
+diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
+index 4d34592c0bcdcbc3823eb9480a7a7c280410329e..5522238a0828c806c48df26a21ba463878d8de5c 100644
+--- a/src/main/java/org/bukkit/Bukkit.java
++++ b/src/main/java/org/bukkit/Bukkit.java
+@@ -532,6 +532,17 @@ public final class Bukkit {
+         return server.createMap(world);
+     }
+ 
++
++    /**
++     * Gets the {@link HelpMap} providing help topics for this server.
++     *
++     * @return a help map for this server
++     */
++    public static HelpMap getHelpMap() {
++        return server.getHelpMap();
++    }
++
++
+     /**
+      * Returns the primary logger associated with this server instance.
+      *
+diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
+index f90a1af01d8abb2b6f081e15643af4a8b35ab70b..581fba6a41a496ab7e7096e7f0fc44fdb5f69be4 100644
+--- a/src/main/java/org/bukkit/Server.java
++++ b/src/main/java/org/bukkit/Server.java
+@@ -57,6 +57,14 @@ public interface Server extends PluginMessageRecipient {
+      */
+     public static final String BROADCAST_CHANNEL_ADMINISTRATIVE = "bukkit.broadcast.admin";
+ 
++    /**
++     * Gets the {@link HelpMap} providing help topics for this server.
++     *
++     * @return a help map for this server
++     */
++    public HelpMap getHelpMap();
++
++
+     /**
+      * Used for all announcement messages, such as informing users that a
+      * player has joined.
+diff --git a/src/main/java/org/bukkit/command/defaults/BanCommand.java b/src/main/java/org/bukkit/command/defaults/BanCommand.java
+deleted file mode 100644
+index 59b804ce6cd14453780aa9974776c69d2cfbfda8..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/command/defaults/BanCommand.java
++++ /dev/null
+@@ -1,56 +0,0 @@
+-package org.bukkit.command.defaults;
+-
+-import java.util.List;
+-
+-import org.apache.commons.lang.StringUtils;
+-import org.apache.commons.lang.Validate;
+-import org.bukkit.BanList;
+-import org.bukkit.Bukkit;
+-import org.bukkit.ChatColor;
+-import org.bukkit.command.Command;
+-import org.bukkit.command.CommandSender;
+-import org.bukkit.entity.Player;
+-
+-import com.google.common.collect.ImmutableList;
+-
+-@Deprecated
+-public class BanCommand extends VanillaCommand {
+-    public BanCommand() {
+-        super("ban");
+-        this.description = "Prevents the specified player from using this server";
+-        this.usageMessage = "/ban <player> [reason ...]";
+-        this.setPermission("bukkit.command.ban.player");
+-    }
+-
+-    @Override
+-    public boolean execute(CommandSender sender, String currentAlias, String[] args) {
+-        if (!testPermission(sender)) return true;
+-        if (args.length == 0)  {
+-            sender.sendMessage(ChatColor.RED + "Usage: " + usageMessage);
+-            return false;
+-        }
+-
+-        String reason = args.length > 0 ? StringUtils.join(args, ' ', 1, args.length) : null;
+-        Bukkit.getBanList(BanList.Type.NAME).addBan(args[0], reason, null, sender.getName());
+-
+-        Player player = Bukkit.getPlayer(args[0]);
+-        if (player != null) {
+-            player.kickPlayer("Banned by admin.");
+-        }
+-
+-        Command.broadcastCommandMessage(sender, "Banned player " + args[0]);
+-        return true;
+-    }
+-
+-    @Override
+-    public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
+-        Validate.notNull(sender, "Sender cannot be null");
+-        Validate.notNull(args, "Arguments cannot be null");
+-        Validate.notNull(alias, "Alias cannot be null");
+-
+-        if (args.length >= 1) {
+-            return super.tabComplete(sender, alias, args);
+-        }
+-        return ImmutableList.of();
+-    }
+-}
+diff --git a/src/main/java/org/bukkit/entity/Player.java b/src/main/java/org/bukkit/entity/Player.java
+index 01063d39fcc5d0d925810fd4a245d777ef6702d7..135c13b33de2e721399b05fd0e1547984a519b89 100644
+--- a/src/main/java/org/bukkit/entity/Player.java
++++ b/src/main/java/org/bukkit/entity/Player.java
+@@ -2,6 +2,8 @@ package org.bukkit.entity;
+ 
+ import java.net.InetSocketAddress;
+ 
++import net.md_5.bungee.api.ChatMessageType;
++import net.md_5.bungee.api.chat.BaseComponent;
+ import org.bukkit.Achievement;
+ import org.bukkit.ChatColor;
+ import org.bukkit.Effect;
+@@ -1303,6 +1305,15 @@ public interface Player extends HumanEntity, Conversable, CommandSender, Offline
+             throw new UnsupportedOperationException("Not supported yet.");
+         }
+ 
++        /**
++         * Sends the component to the player
++         *
++         * @param component the components to send
++         */
++        public void sendMessage(ChatMessageType type, BaseComponent component) {
++            throw new UnsupportedOperationException("Not supported yet.");
++        }
++
+         /**
+          * Sends an array of components as a single message to the player
+          *
+diff --git a/src/main/java/org/bukkit/event/block/SpongeAbsorbEvent.java b/src/main/java/org/bukkit/event/block/SpongeAbsorbEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..0f663dc3b916cb5100f4a28abdfebde9d7682983
+--- /dev/null
++++ b/src/main/java/org/bukkit/event/block/SpongeAbsorbEvent.java
+@@ -0,0 +1,38 @@
++package org.bukkit.event.block;
++
++import java.util.List;
++import org.bukkit.block.Block;
++import org.bukkit.block.BlockState;
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.HandlerList;
++
++public class SpongeAbsorbEvent extends BlockEvent implements Cancellable {
++    private static final HandlerList handlers = new HandlerList();
++    private boolean cancelled;
++    private final List<BlockState> blocks;
++
++    public SpongeAbsorbEvent(Block block, List<BlockState> waterblocks) {
++        super(block);
++        this.blocks = waterblocks;
++    }
++
++    public List<BlockState> getBlocks() {
++        return this.blocks;
++    }
++
++    public boolean isCancelled() {
++        return this.cancelled;
++    }
++
++    public void setCancelled(boolean cancel) {
++        this.cancelled = cancel;
++    }
++
++    public HandlerList getHandlers() {
++        return handlers;
++    }
++
++    public static HandlerList getHandlerList() {
++        return handlers;
++    }
++}

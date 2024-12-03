@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Sat, 6 Jul 2024 10:22:16 +0500
+Subject: [PATCH] Move .console_history to logs folder
+
+
+diff --git a/src/main/java/com/hpfxd/pandaspigot/console/PandaConsole.java b/src/main/java/com/hpfxd/pandaspigot/console/PandaConsole.java
+index 25a515b681bbbb70946f2ec73647a6f184f81b3c..3a1d732c1a78ad9c64fbe34245bff813b73c6400 100644
+--- a/src/main/java/com/hpfxd/pandaspigot/console/PandaConsole.java
++++ b/src/main/java/com/hpfxd/pandaspigot/console/PandaConsole.java
+@@ -33,7 +33,7 @@ public class PandaConsole extends SimpleTerminalConsole {
+     protected LineReader buildReader(LineReaderBuilder builder) {
+         return super.buildReader(builder
+             .appName("PandaSpigot")
+-            .variable(LineReader.HISTORY_FILE, Paths.get(".console_history"))
++            .variable(LineReader.HISTORY_FILE, Paths.get("logs/.console_history"))
+             .completer(new PandaConsoleCompleter(this.server)));
+     }
+ }

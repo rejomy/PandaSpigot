@@ -1,0 +1,29 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Fri, 5 Jul 2024 21:07:52 +0500
+Subject: [PATCH] Fix build
+
+
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 22a5fe9c59d1b2a8283e1ebb503c77b2be892fb5..c7eb557d35e4dbcaea8669ac0ab5dacba5142c68 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -121,3 +121,18 @@ publishing {
+         }
+     }
+ }
++
++tasks.withType<JavaCompile> {
++    options.encoding = "UTF-8"
++}
++
++tasks.withType<JavaExec> {
++    systemProperty("file.encoding", "UTF-8")
++}
++
++tasks.withType<Javadoc> {
++    options {
++        encoding = "UTF-8"
++        charset("UTF-8")
++    }
++}

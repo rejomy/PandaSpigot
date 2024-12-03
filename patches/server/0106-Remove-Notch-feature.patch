@@ -1,0 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Fri, 5 Jul 2024 14:08:17 +0500
+Subject: [PATCH] Remove Notch feature
+
+
+diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
+index e071460f1d024758e05e8344f8f7f6d269915875..04a4ce68ee3b53eb6d2bf54a03208d95028ffec1 100644
+--- a/src/main/java/net/minecraft/server/EntityHuman.java
++++ b/src/main/java/net/minecraft/server/EntityHuman.java
+@@ -468,9 +468,6 @@ public abstract class EntityHuman extends EntityLiving {
+         this.setSize(0.2F, 0.2F);
+         this.setPosition(this.locX, this.locY, this.locZ);
+         this.motY = 0.10000000149011612D;
+-        if (this.getName().equals("Notch")) {
+-            this.a(new ItemStack(Items.APPLE, 1), true, false);
+-        }
+ 
+         if (!this.world.getGameRules().getBoolean("keepInventory")) {
+             this.inventory.n();

@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Mon, 1 Jul 2024 15:35:20 +0500
+Subject: [PATCH] Remove not online mode warnings
+
+
+diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
+index 9d34ce55b2d168f59504ffd17e045de255780659..8c5648906441130cd11ddbfcb060621aab3658f8 100644
+--- a/src/main/java/net/minecraft/server/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/DedicatedServer.java
+@@ -226,20 +226,6 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+         server.enablePlugins(org.bukkit.plugin.PluginLoadOrder.STARTUP);
+         // Spigot End
+ 
+-        if (!this.getOnlineMode()) {
+-            DedicatedServer.LOGGER.warn("**** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!");
+-            DedicatedServer.LOGGER.warn("The server will make no attempt to authenticate usernames. Beware.");
+-            // Spigot start
+-            if (org.spigotmc.SpigotConfig.bungee) {
+-                DedicatedServer.LOGGER.warn("Whilst this makes it possible to use BungeeCord, unless access to your server is properly restricted, it also opens up the ability for hackers to connect with any username they choose.");
+-                DedicatedServer.LOGGER.warn("Please see http://www.spigotmc.org/wiki/firewall-guide/ for further information.");
+-            } else {
+-                DedicatedServer.LOGGER.warn("While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.");
+-            }
+-            // Spigot end
+-            DedicatedServer.LOGGER.warn("To change this, set \"online-mode\" to \"true\" in the server.properties file.");
+-        }
+-
+         if (this.aR()) {
+             this.getUserCache().c();
+         }

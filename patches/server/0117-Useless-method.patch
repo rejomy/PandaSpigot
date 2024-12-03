@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Sat, 5 Oct 2024 07:05:35 +0500
+Subject: [PATCH] Useless method
+
+
+diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
+index 04a4ce68ee3b53eb6d2bf54a03208d95028ffec1..fef6c757309078171e1f4ae1e09e567c464a1742 100644
+--- a/src/main/java/net/minecraft/server/EntityHuman.java
++++ b/src/main/java/net/minecraft/server/EntityHuman.java
+@@ -851,38 +851,6 @@ public abstract class EntityHuman extends EntityLiving {
+         return (float) i / (float) this.inventory.armor.length;
+     }
+ 
+-    // CraftBukkit start
+-    protected boolean d(DamageSource damagesource, float f) { // void -> boolean
+-        if (true) {
+-            return super.d(damagesource, f);
+-        }
+-        // CraftBukkit end
+-        if (!this.isInvulnerable(damagesource)) {
+-            if (!damagesource.ignoresArmor() && this.isBlocking() && f > 0.0F) {
+-                f = (1.0F + f) * this.world.paperSpigotConfig.playerBlockingDamageMultiplier; // PaperSpigot - Configurable damage multiplier for blocking;
+-            }
+-
+-            f = this.applyArmorModifier(damagesource, f);
+-            f = this.applyMagicModifier(damagesource, f);
+-            float f1 = f;
+-
+-            f = Math.max(f - this.getAbsorptionHearts(), 0.0F);
+-            this.setAbsorptionHearts(this.getAbsorptionHearts() - (f1 - f));
+-            if (f != 0.0F) {
+-                this.applyExhaustion(damagesource.getExhaustionCost());
+-                float f2 = this.getHealth();
+-
+-                this.setHealth(this.getHealth() - f);
+-                this.bs().a(damagesource, f2, f);
+-                if (f < 3.4028235E37F) {
+-                    this.a(StatisticList.x, Math.round(f * 10.0F));
+-                }
+-
+-            }
+-        }
+-        return false; // CraftBukkit
+-    }
+-
+     public void openSign(TileEntitySign tileentitysign) {}
+ 
+     public void a(CommandBlockListenerAbstract commandblocklistenerabstract) {}

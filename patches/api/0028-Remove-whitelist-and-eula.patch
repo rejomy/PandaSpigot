@@ -1,0 +1,145 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Mon, 1 Jul 2024 15:28:20 +0500
+Subject: [PATCH] Remove whitelist and eula
+
+
+diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
+index 4ae094a9d190e23efcebd866a8ecb11ebf9167e6..90e6621dae47924310bb9a8e0515cffb468ed429 100644
+--- a/src/main/java/org/bukkit/Bukkit.java
++++ b/src/main/java/org/bukkit/Bukkit.java
+@@ -262,40 +262,6 @@ public final class Bukkit {
+         return server.getAllowNether();
+     }
+ 
+-    /**
+-     * Gets whether this server has a whitelist or not.
+-     *
+-     * @return whether this server has a whitelist or not
+-     */
+-    public static boolean hasWhitelist() {
+-        return server.hasWhitelist();
+-    }
+-
+-    /**
+-     * Sets if the server is whitelisted.
+-     *
+-     * @param value true for whitelist on, false for off
+-     */
+-    public static void setWhitelist(boolean value) {
+-        server.setWhitelist(value);
+-    }
+-
+-    /**
+-     * Gets a list of whitelisted players.
+-     *
+-     * @return a set containing all whitelisted players
+-     */
+-    public static Set<OfflinePlayer> getWhitelistedPlayers() {
+-        return server.getWhitelistedPlayers();
+-    }
+-
+-    /**
+-     * Reloads the whitelist from disk.
+-     */
+-    public static void reloadWhitelist() {
+-        server.reloadWhitelist();
+-    }
+-
+     /**
+      * Broadcast a message to all players.
+      * <p>
+@@ -667,15 +633,6 @@ public final class Bukkit {
+     public static void resetRecipes() {
+         server.resetRecipes();
+     }
+-    
+-    /**
+-     * Gets a list of command aliases defined in the server properties.
+-     *
+-     * @return a map of aliases to command names
+-     */
+-    public static Map<String, String[]> getCommandAliases() {
+-        return server.getCommandAliases();
+-    }
+ 
+     /**
+      * Gets the radius, in blocks, around each worlds spawn point to protect.
+diff --git a/src/main/java/org/bukkit/OfflinePlayer.java b/src/main/java/org/bukkit/OfflinePlayer.java
+index e98706a668b2d70216e13a1fe8bff3340697cd0c..03521c0e470ff7cce6c7cb93c2398d3e2edb41dc 100644
+--- a/src/main/java/org/bukkit/OfflinePlayer.java
++++ b/src/main/java/org/bukkit/OfflinePlayer.java
+@@ -52,20 +52,6 @@ public interface OfflinePlayer extends ServerOperator, AnimalTamer, Configuratio
+     @Deprecated
+     public void setBanned(boolean banned);
+ 
+-    /**
+-     * Checks if this player is whitelisted or not
+-     *
+-     * @return true if whitelisted
+-     */
+-    public boolean isWhitelisted();
+-
+-    /**
+-     * Sets if this player is whitelisted or not
+-     *
+-     * @param value true if whitelisted
+-     */
+-    public void setWhitelisted(boolean value);
+-
+     /**
+      * Gets a {@link Player} object that this represents, if there is one
+      * <p>
+diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
+index 1ad82f5eddb477d2d9a753c1d2540ccff3d4f392..a908c6ed1c9b166ea3d2d28d634c8a37a98e10b4 100644
+--- a/src/main/java/org/bukkit/Server.java
++++ b/src/main/java/org/bukkit/Server.java
+@@ -201,32 +201,6 @@ public interface Server extends PluginMessageRecipient {
+      */
+     public boolean getAllowNether();
+ 
+-    /**
+-     * Gets whether this server has a whitelist or not.
+-     *
+-     * @return whether this server has a whitelist or not
+-     */
+-    public boolean hasWhitelist();
+-
+-    /**
+-     * Sets if the server is whitelisted.
+-     *
+-     * @param value true for whitelist on, false for off
+-     */
+-    public void setWhitelist(boolean value);
+-
+-    /**
+-     * Gets a list of whitelisted players.
+-     *
+-     * @return a set containing all whitelisted players
+-     */
+-    public Set<OfflinePlayer> getWhitelistedPlayers();
+-
+-    /**
+-     * Reloads the whitelist from disk.
+-     */
+-    public void reloadWhitelist();
+-
+     /**
+      * Broadcast a message to all players.
+      * <p>
+diff --git a/src/main/java/org/bukkit/event/player/PlayerLoginEvent.java b/src/main/java/org/bukkit/event/player/PlayerLoginEvent.java
+index 4bc024ffd3f94c161dd9f64ad5c6201c495e08fa..179dd5a16ab4e14ce96768e961febdb5937ba889 100644
+--- a/src/main/java/org/bukkit/event/player/PlayerLoginEvent.java
++++ b/src/main/java/org/bukkit/event/player/PlayerLoginEvent.java
+@@ -200,11 +200,6 @@ public class PlayerLoginEvent extends PlayerEvent {
+          * The player is not allowed to log in, due to them being banned
+          */
+         KICK_BANNED,
+-        /**
+-         * The player is not allowed to log in, due to them not being on the
+-         * white list
+-         */
+-        KICK_WHITELIST,
+         /**
+          * The player is not allowed to log in, for reasons undefined
+          */

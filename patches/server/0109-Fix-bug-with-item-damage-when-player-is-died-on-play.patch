@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Sat, 6 Jul 2024 09:55:26 +0500
+Subject: [PATCH] Fix bug with item damage when player is died on player quit
+ event
+
+
+diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
+index 5f8df6b46ecbec5f46b2585673161c768cd416f7..9e003e352ea68e71390321206bc8f315adc401b7 100644
+--- a/src/main/java/net/minecraft/server/PlayerList.java
++++ b/src/main/java/net/minecraft/server/PlayerList.java
+@@ -365,7 +365,15 @@ public abstract class PlayerList {
+         cserver.getPluginManager().callEvent(playerQuitEvent);
+         entityplayer.getBukkitEntity().disconnect(playerQuitEvent.getQuitMessage());
+         // CraftBukkit end
+-        
++
++        if (entityplayer.getHealth() == 0) {
++            AttributeModifier ab = entityplayer.getAttributeMap().a(GenericAttributes.ATTACK_DAMAGE).a(UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF"));
++
++            if (ab != null) {
++                ab.a(false);
++            }
++        }
++
+         this.savePlayerFile(entityplayer);
+         WorldServer worldserver = entityplayer.u();
+ 

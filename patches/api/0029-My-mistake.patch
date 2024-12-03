@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kirill <iyaargg@gmail.com>
+Date: Mon, 1 Jul 2024 15:45:45 +0500
+Subject: [PATCH] My mistake
+
+
+diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
+index 90e6621dae47924310bb9a8e0515cffb468ed429..cca0ff3e3fa68a5c780ca68592d4e0d1d3c378b9 100644
+--- a/src/main/java/org/bukkit/Bukkit.java
++++ b/src/main/java/org/bukkit/Bukkit.java
+@@ -634,6 +634,15 @@ public final class Bukkit {
+         server.resetRecipes();
+     }
+ 
++    /**
++     * Gets a list of command aliases defined in the server properties.
++     *
++     * @return a map of aliases to command names
++     */
++    public static Map<String, String[]> getCommandAliases() {
++        return server.getCommandAliases();
++    }
++
+     /**
+      * Gets the radius, in blocks, around each worlds spawn point to protect.
+      *
