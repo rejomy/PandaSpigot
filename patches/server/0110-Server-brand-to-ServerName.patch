@@ -5,7 +5,7 @@ Subject: [PATCH] Server brand to "ServerName"
 
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index fb5e2990bb198ba48488757ba011e84a89c75877..6e308dda2069bd5ef3cd9d29b8c6f75f4c2a65be 100644
+index db8f456952677d75e22034e4d32250ed5eccdf0d..513ea0977c3ba9eec5b130b6d20a8786407221a7 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -44,6 +44,7 @@ import java.io.IOException;
@@ -16,7 +16,7 @@ index fb5e2990bb198ba48488757ba011e84a89c75877..6e308dda2069bd5ef3cd9d29b8c6f75f
  import org.bukkit.craftbukkit.Main;
  import co.aikar.timings.SpigotTimings; // Spigot
  // CraftBukkit end
-@@ -1228,7 +1229,7 @@ public abstract class MinecraftServer extends com.hpfxd.pandaspigot.tickloop.Ree
+@@ -1209,7 +1210,7 @@ public abstract class MinecraftServer extends com.hpfxd.pandaspigot.tickloop.Ree
      }
  
      public String getServerModName() {

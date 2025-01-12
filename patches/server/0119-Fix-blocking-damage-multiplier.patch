@@ -5,7 +5,7 @@ Subject: [PATCH] Fix blocking damage multiplier
 
 
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 62e38bf1c0d0fc878768ac00fa3c56ac7fe5101d..b1aa4792e5d2e42e8dcfa0b5b5e55b6da571b241 100644
+index 32752dfad24bc7883b1ab52e29834f1aa6fa60c6..17f4ecb822533a7f1801292838c28282f06843bd 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -1064,7 +1064,8 @@ public abstract class EntityLiving extends Entity {

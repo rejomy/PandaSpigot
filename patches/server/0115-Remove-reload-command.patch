@@ -17,7 +17,7 @@ index 8998372631bb82a853c967ec575d2403dddebf1b..e08afce57b0615cd36737926b8f73d98
              for (Map.Entry<Thread, ? extends Object[]> entry : Thread.getAllStackTraces().entrySet()) {
                  value.append(' ').append(entry.getKey().getState().name()).append(' ').append(entry.getKey().getName()).append(": ").append(Arrays.toString(entry.getValue())).append(',');
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index c222016d0e4f9bcc5d11f9b6bdd2df9ab306507e..8f03d03eab77f5941c28f9bd8a811d5dfecbea76 100644
+index eed2f1ec3368b5a27101dd1a65db963442fda82c..95c43ccc42934ecc37f5a7fb348d3888d41ea448 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -157,7 +157,6 @@ public final class CraftServer implements Server {

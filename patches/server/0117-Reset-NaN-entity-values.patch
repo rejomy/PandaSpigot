@@ -5,7 +5,7 @@ Subject: [PATCH] Reset NaN entity values
 
 
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 37aae0ccb40e1827f268a88b1a74d288e3f5760d..712b9e4b48e96649bc87a155f09d269692e5975b 100644
+index b8f4a69a1cac37722077f0510c72b087255c892c..ae2640c4a6ea2e3bdcb4d62b4e44ffb11b9994a1 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -1228,6 +1228,12 @@ public abstract class Entity implements ICommandListener {

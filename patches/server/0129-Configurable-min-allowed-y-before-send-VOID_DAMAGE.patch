@@ -1,0 +1,41 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Rejomy <iyaargg@gmail.com>
+Date: Sun, 12 Jan 2025 12:40:22 +0500
+Subject: [PATCH] Configurable min allowed y before send VOID_DAMAGE.
+
+
+diff --git a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
+index 66bb8b59e406a54e10a2291e0615c3e2b6b24285..f09af811db3e918e319e709991bd66d5981bd9bc 100644
+--- a/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
++++ b/src/main/java/com/hpfxd/pandaspigot/config/PandaSpigotConfig.java
+@@ -97,6 +97,9 @@ public class PandaSpigotConfig {
+ 
+     @Comment("Prevent chest and sound bugs.")
+     public boolean dropUsePacketsInInventory = true;
++
++    @Comment("Minimum allowed y height before we will send void damage.")
++    public double minYHeight = -64.0D;
+     
+     //------------------------------------------------------------------------
+     @Comment("On servers with plugins that constantly churn through scoreboards, there is a risk of\n" +
+diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
+index ae2640c4a6ea2e3bdcb4d62b4e44ffb11b9994a1..199df58ebd19518478ede5016ac54bead824961f 100644
+--- a/src/main/java/net/minecraft/server/Entity.java
++++ b/src/main/java/net/minecraft/server/Entity.java
+@@ -7,6 +7,7 @@ import java.util.UUID;
+ import java.util.concurrent.Callable;
+ 
+ // CraftBukkit start
++import com.hpfxd.pandaspigot.config.PandaSpigotConfig;
+ import org.bukkit.Bukkit;
+ import org.bukkit.Location;
+ import org.bukkit.Server;
+@@ -361,7 +362,7 @@ public abstract class Entity implements ICommandListener {
+             this.fallDistance *= 0.5F;
+         }
+ 
+-        if (this.locY < -64.0D || paperNetherCheck()) { // PaperSpigot - Configurable top-of-nether void damage
++        if (this.locY < PandaSpigotConfig.get().minYHeight || paperNetherCheck()) { // PaperSpigot - Configurable top-of-nether void damage
+             this.O();
+         }
+ 

@@ -5,7 +5,7 @@ Subject: [PATCH] Remove permissions.yml file and his logic.
 
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index a1044fa605952d23b7d51add8f3bea10ca995b3c..5233ad1c5012ee1df5705627dced1de597f96424 100644
+index 6459f8b3b4082dc9bbbda0f8c371674a31629da3..454d83434048d9e6a8d03629ecbcc06304338a9e 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -359,7 +359,6 @@ public final class CraftServer implements Server {

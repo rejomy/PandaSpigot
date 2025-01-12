@@ -6,7 +6,7 @@ Subject: [PATCH] Remove unused code from Spigot tick limiters
 Paper removed this feature from Spigot, but forgot to remove some parts of the code/config
 
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index ea2bc1111714eefaf6352b74f82f5e86e1350f28..6a563d3017b0455dfe27f84e30fd4c23bfc5c333 100644
+index 326c881f76b6ba6414563ccb5bcfda7c06e1f798..2dd03cc25b30ed93c1cdcaa7802cb9ecdcd9c9f7 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -135,8 +135,12 @@ public abstract class World implements IBlockAccess {

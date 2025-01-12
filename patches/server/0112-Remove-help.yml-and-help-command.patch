@@ -5,7 +5,7 @@ Subject: [PATCH] Remove help.yml and help command
 
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 5233ad1c5012ee1df5705627dced1de597f96424..c222016d0e4f9bcc5d11f9b6bdd2df9ab306507e 100644
+index 454d83434048d9e6a8d03629ecbcc06304338a9e..eed2f1ec3368b5a27101dd1a65db963442fda82c 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -49,7 +49,6 @@ import org.bukkit.conversations.Conversable;

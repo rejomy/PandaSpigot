@@ -276,7 +276,7 @@ index f68b132fb9d0b38f2ebc1e4c8c4ca6ef993fc72a..0fbe863c0cb1f824ec74262f10847e8d
  
          return tileentity;
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 8f03d03eab77f5941c28f9bd8a811d5dfecbea76..c3c80f5703d9d4612abe3c3e74318ea9bd455188 100644
+index 95c43ccc42934ecc37f5a7fb348d3888d41ea448..4fbd9e094b13dfa930ded166fc69e95c95f7feec 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -49,6 +49,7 @@ import org.bukkit.conversations.Conversable;
